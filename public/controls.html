@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Controles - TikTok Battle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0a0b10;
+      --surface: #15161e;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --primary: #ffd700;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --team1: #00f2fe;
+      --team2: #fe0979;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      color: var(--primary);
+      margin: 0;
+      font-size: 24px;
+      text-transform: uppercase;
+      text-align: center;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 15px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      padding-bottom: 8px;
+      margin: 0;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      flex: 1;
+    }
+
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-outline {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .btn-t1 { border-color: rgba(0, 242, 254, 0.4); color: var(--team1); }
+    .btn-t2 { border-color: rgba(254, 9, 121, 0.4); color: var(--team2); }
+
+    .input-field {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .input-field:focus { border-color: var(--primary); }
+    
+    .size-input { width: 80px; text-align: center; }
+
+    .label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    #status-msg {
+      text-align: center;
+      font-size: 13px;
+      color: var(--success);
+      font-weight: 600;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎮 Panel de Control</h2>
+
+  <!-- Estado -->
+  <div class="card" id="connection-card">
+    <div id="status-msg">Enlazando con el juego...</div>
+  </div>
+
+  <!-- Controles Principales -->
+  <div class="card">
+    <h3 class="card-title"><i class="fas fa-gamepad"></i> Partida</h3>
+    <div class="row">
+      <button id="start-btn" class="btn btn-success"><i class="fas fa-play"></i> Iniciar</button>
+      <button id="reset-btn" class="btn btn-outline"><i class="fas fa-redo"></i> Reiniciar</button>
+    </div>
+    <div class="row">
+      <button id="end-match-btn" class="btn btn-danger" style="display:none;"><i class="fas fa-stop"></i> Terminar Partida</button>
+      <button id="open-podium-btn" class="btn btn-outline" style="border-color:var(--primary);color:var(--primary)"><i class="fas fa-trophy"></i> Ventana Podio</button>
+    </div>
+  </div>
+
+  <!-- Configuración de Equipos -->
+  <div class="card">
+    <h3 class="card-title"><i class="fas fa-users"></i> Nombres de Equipos</h3>
+    <div class="row">
+      <input type="text" id="t1-name" class="input-field" placeholder="Nombre Equipo 1..." value="EQUIPO 1">
+      <input type="text" id="t2-name" class="input-field" placeholder="Nombre Equipo 2..." value="EQUIPO 2">
+    </div>
+    <div class="row">
+      <button id="apply-teams-btn" class="btn btn-outline"><i class="fas fa-check"></i> Aplicar Nombres</button>
+    </div>
+  </div>
+
+  <!-- Configuración -->
+  <div class="card">
+    <h3 class="card-title"><i class="fas fa-cog"></i> Configuración</h3>
+    <div class="row">
+      <span class="label">Límite (min):</span>
+      <input type="number" id="time-limit" class="input-field size-input" value="5" min="1" max="60">
+    </div>
+    <div class="row">
+      <span class="label" style="font-size:12px; margin-right:5px;">Ajuste Rápido:</span>
+      <button id="add-time-30" class="btn btn-outline" style="padding:6px; flex:1; font-size:12px;">+30s</button>
+      <button id="add-time-60" class="btn btn-outline" style="padding:6px; flex:1; font-size:12px;">+1m</button>
+      <button id="sub-time-30" class="btn btn-outline" style="padding:6px; flex:1; font-size:12px; border-color:var(--danger); color:var(--danger)">-30s</button>
+    </div>
+    <div class="row">
+      <span class="label" style="font-size:12px;">Fijar Tiempo:</span>
+      <input type="number" id="manual-mins" class="input-field size-input" placeholder="Min" min="0" value="0">
+      <span style="color:var(--text-secondary)">:</span>
+      <input type="number" id="manual-secs" class="input-field size-input" placeholder="Seg" min="0" max="59" value="0">
+      <button id="set-time-btn" class="btn btn-outline" style="padding:6px; margin-left:5px;"><i class="fas fa-clock"></i></button>
+    </div>
+    <div class="row">
+      <span class="label">Tamaño Canvas:</span>
+      <input type="number" id="canvas-w" class="input-field size-input" value="420" min="200" max="1920">
+      <span style="color:var(--text-secondary)">x</span>
+      <input type="number" id="canvas-h" class="input-field size-input" value="650" min="300" max="1080">
+    </div>
+    <div class="row">
+      <button id="apply-size-btn" class="btn btn-outline"><i class="fas fa-crop"></i> Aplicar Tamaño</button>
+    </div>
+    <div class="row">
+      <input type="file" id="bg-file" accept="image/*" style="display:none">
+      <button id="bg-file-btn" class="btn btn-outline"><i class="fas fa-image"></i> Cambiar Fondo de Arena</button>
+    </div>
+  </div>
+
+  <!-- Simulador -->
+  <div class="card">
+    <h3 class="card-title"><i class="fas fa-vial"></i> Simulador de Eventos</h3>
+    <div class="row">
+      <input type="text" id="sim-user" class="input-field" placeholder="Nombre usuario...">
+    </div>
+    <div class="row">
+      <button id="sim-t1" class="btn btn-outline btn-t1"><i class="fas fa-plus"></i> Unir Eq 1</button>
+      <button id="sim-t2" class="btn btn-outline btn-t2"><i class="fas fa-plus"></i> Unir Eq 2</button>
+    </div>
+    <div class="row" style="margin-top:5px">
+      <input type="number" id="sim-coins" class="input-field size-input" value="5" min="1">
+      <button id="sim-gift" class="btn btn-outline" style="border-color:rgba(245,158,11,0.4);color:var(--warning)"><i class="fas fa-gift"></i> Enviar Regalo</button>
+    </div>
+  </div>
+
+  <script>
+    let battleAPI = null;
+    let isPlaying = false;
+
+    function connectToGame() {
+      if (window.opener && window.opener.BattleAPI) {
+        battleAPI = window.opener.BattleAPI;
+        document.getElementById('status-msg').textContent = "✅ Conectado al Juego";
+        document.getElementById('status-msg').style.color = "var(--success)";
+        syncState();
+      } else {
+        document.getElementById('status-msg').textContent = "❌ No se encontró el Juego. Abre esta ventana desde battle.html";
+        document.getElementById('status-msg').style.color = "var(--danger)";
+      }
+    }
+
+    function syncState() {
+      if (!battleAPI) return;
+      const state = battleAPI.getState();
+      isPlaying = state.isGameActive;
+      
+      const startBtn = document.getElementById("start-btn");
+      if (isPlaying) {
+        startBtn.className = "btn btn-danger";
+        startBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+        document.getElementById("end-match-btn").style.display = (state.gameState === 'PLAYING') ? 'flex' : 'none';
+      } else {
+        startBtn.className = "btn btn-success";
+        startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+        document.getElementById("end-match-btn").style.display = 'none';
+      }
+    }
+
+    // Attempt connection every 1s in case it wasn't ready
+    setInterval(connectToGame, 1000);
+    connectToGame();
+
+    // Event Listeners for Buttons
+    document.getElementById("start-btn").addEventListener("click", () => {
+      if (battleAPI) {
+        const timeLimit = parseFloat(document.getElementById("time-limit").value) || 5;
+        battleAPI.togglePlay(timeLimit);
+        syncState();
+      }
+    });
+
+    document.getElementById("reset-btn").addEventListener("click", () => {
+      if (battleAPI) battleAPI.resetGame();
+    });
+
+    document.getElementById("end-match-btn").addEventListener("click", () => {
+      if (battleAPI) {
+        battleAPI.endMatch();
+        syncState();
+      }
+    });
+
+    document.getElementById("open-podium-btn").addEventListener("click", () => {
+      if (battleAPI) battleAPI.openPodium();
+    });
+
+    document.getElementById("add-time-30").addEventListener("click", () => { if (battleAPI) battleAPI.addTime(30); });
+    document.getElementById("add-time-60").addEventListener("click", () => { if (battleAPI) battleAPI.addTime(60); });
+    document.getElementById("sub-time-30").addEventListener("click", () => { if (battleAPI) battleAPI.addTime(-30); });
+
+    document.getElementById("set-time-btn").addEventListener("click", () => {
+      if (battleAPI) {
+        const m = parseInt(document.getElementById("manual-mins").value) || 0;
+        const s = parseInt(document.getElementById("manual-secs").value) || 0;
+        const totalSeconds = (m * 60) + s;
+        battleAPI.setTime(totalSeconds);
+      }
+    });
+
+    document.getElementById("apply-size-btn").addEventListener("click", () => {
+      if (battleAPI) {
+        const w = document.getElementById("canvas-w").value;
+        const h = document.getElementById("canvas-h").value;
+        battleAPI.resizeCanvas(w, h);
+      }
+    });
+
+    document.getElementById("bg-file-btn").addEventListener("click", () => {
+      document.getElementById("bg-file").click();
+    });
+
+    document.getElementById("bg-file").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file && battleAPI) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          battleAPI.setBackgroundImage(event.target.result);
+          document.getElementById("bg-file-btn").innerHTML = '<i class="fas fa-check text-success" style="color:var(--success)"></i> Fondo Cargado';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Simulator
+    document.getElementById("sim-t1").addEventListener("click", () => {
+      if (battleAPI) {
+        const user = document.getElementById("sim-user").value || ("Sim_" + Math.floor(Math.random()*1000));
+        battleAPI.simulateJoin(user, 1);
+      }
+    });
+
+    document.getElementById("sim-t2").addEventListener("click", () => {
+      if (battleAPI) {
+        const user = document.getElementById("sim-user").value || ("Sim_" + Math.floor(Math.random()*1000));
+        battleAPI.simulateJoin(user, 2);
+      }
+    });
+
+    document.getElementById("sim-gift").addEventListener("click", () => {
+      if (battleAPI) {
+        const user = document.getElementById("sim-user").value || "TestUser";
+        const coins = parseInt(document.getElementById("sim-coins").value) || 5;
+        battleAPI.simulateGift(user, coins);
+      }
+    });
+    document.getElementById("apply-teams-btn").addEventListener("click", () => {
+      if (battleAPI) {
+        const t1 = document.getElementById("t1-name").value;
+        const t2 = document.getElementById("t2-name").value;
+        battleAPI.updateTeamNames(t1, t2);
+      }
+    });
+  </script>
+</body>
+</html>

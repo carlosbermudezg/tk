@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Top 10 - TikTok Battle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ffd700;
+      --team1: #00f2fe;
+      --team2: #fe0979;
+    }
+    body {
+      margin: 0;
+      padding: 20px;
+      overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: #0a0b10; /* Fondo oscuro unificado */
+      color: #fff;
+    }
+    .leaderboard-container {
+      width: 100%;
+      max-width: 380px;
+      height: auto;
+      box-sizing: border-box;
+      padding: 12px;
+      background: rgba(10, 11, 16, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+    }
+    #leaderboard-list {
+      flex: none;
+      overflow-y: visible;
+      padding-right: 0;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .header h1 {
+      font-family: 'Outfit', sans-serif;
+      margin: 0;
+      font-size: 18px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+    }
+    .timer {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      color: #fff;
+      margin-top: 4px;
+      font-weight: 800;
+    }
+    .timer.urgent {
+      color: #ef4444;
+      animation: pulse 1s infinite alternate;
+      text-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+    }
+    
+    .player-row {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.04);
+      border-radius: 6px;
+      padding: 4px 8px;
+      margin-bottom: 4px;
+      transition: transform 0.2s ease, background 0.2s ease;
+      position: relative;
+    }
+    .player-row.t1 { border-left: 4px solid var(--team1); }
+    .player-row.t2 { border-left: 4px solid var(--team2); }
+    
+    .rank {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      width: 25px;
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+    }
+    .player-row:nth-child(1) .rank { color: #ffd700; font-size: 16px; text-shadow: 0 0 8px #ffd700; }
+    .player-row:nth-child(2) .rank { color: #c0c0c0; font-size: 15px; }
+    .player-row:nth-child(3) .rank { color: #cd7f32; font-size: 15px; }
+    
+    .avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin: 0 8px;
+      border: 2px solid #fff;
+      object-fit: cover;
+    }
+    .player-row.t1 .avatar { border-color: var(--team1); }
+    .player-row.t2 .avatar { border-color: var(--team2); }
+
+    .info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .name {
+      font-weight: 600;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #f3f4f6;
+    }
+    .damage {
+      font-size: 11px;
+      color: #ff5e00;
+      font-weight: 800;
+      margin-top: 1px;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0.8; transform: scale(1.05); }
+    }
+    
+    .team-kills {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      padding: 0 5px;
+    }
+    .t1-kills, .t2-kills {
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      padding: 4px 10px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 40%;
+    }
+    .t1-kills { border-bottom: 3px solid var(--team1); }
+    .t2-kills { border-bottom: 3px solid var(--team2); }
+    .team-kills .label { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7); }
+    .team-kills span[id] { font-size: 16px; font-family: 'Outfit', sans-serif; font-weight: 800; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+  </style>
+</head>
+<body>
+
+  <div class="leaderboard-container">
+    <div class="header">
+      <h1>🏆 TOP 10 DAÑO 🏆</h1>
+      <div class="timer" id="timer-display">--:--</div>
+      <div class="team-kills">
+        <div class="t1-kills"><span class="label">EQ1 KILLS</span><br><span id="kills-t1">0</span></div>
+        <div class="t2-kills"><span class="label">EQ2 KILLS</span><br><span id="kills-t2">0</span></div>
+      </div>
+    </div>
+    
+    <div id="leaderboard-list">
+      <!-- Players injected here by JS -->
+      <div style="text-align:center; padding: 20px; color: #666; font-size: 12px;">Esperando el inicio de la batalla...</div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const listEl = document.getElementById('leaderboard-list');
+    const timerEl = document.getElementById('timer-display');
+    
+    socket.on('live-leaderboard', (data) => {
+      // Update Timer
+      const timeLeft = data.timeLeft || 0;
+      if (timeLeft > 0) {
+        const mins = Math.floor(timeLeft / 60000);
+        const secs = Math.floor((timeLeft % 60000) / 1000);
+        timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 30000) {
+          timerEl.classList.add('urgent');
+        } else {
+          timerEl.classList.remove('urgent');
+        }
+      } else {
+        timerEl.textContent = 'TERMINADO';
+        timerEl.classList.remove('urgent');
+      }
+      
+      // Update kills
+      document.getElementById('kills-t1').textContent = data.killsTeam1 || 0;
+      document.getElementById('kills-t2').textContent = data.killsTeam2 || 0;
+      
+      // Update List
+      if (data.players && data.players.length > 0) {
+        listEl.innerHTML = '';
+        data.players.forEach((p, index) => {
+          const row = document.createElement('div');
+          row.className = `player-row ${p.team === 1 ? 't1' : 't2'}`;
+          
+          row.innerHTML = `
+            <div class="rank">#${index + 1}</div>
+            <img src="${p.avatarUrl || 'https://www.tiktok.com/favicon.ico'}" class="avatar" alt="Avatar">
+            <div class="info">
+              <span class="name">${p.nickname}</span>
+              <span class="damage">${Math.round(p.damageDealt)} DMG</span>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
+      } else {
+        listEl.innerHTML = '<div style="text-align:center; padding: 20px; color: #666; font-size: 12px;">Sin combatientes aún...</div>';
+      }
+    });
+  </script>
+</body>
+</html>

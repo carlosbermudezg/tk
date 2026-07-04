@@ -1,0 +1,21 @@
+{
+  "name": "tiktok-live-listener",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Dashboard para escuchar eventos de transmisiones en vivo de TikTok",
+  "main": "server.ts",
+  "scripts": {
+    "start": "tsx server.ts"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "piratetok-live-js": "^0.1.5",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.0",
+    "tsx": "^4.22.5",
+    "typescript": "^6.0.3"
+  }
+}

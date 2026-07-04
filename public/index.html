@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Live Event Dashboard 🚀</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <div class="logo-circle">
+          <i class="fab fa-tiktok tiktok-icon-color"></i>
+        </div>
+        <div class="brand-text">
+          <h1>TikTok Live <span class="gradient-text">StreamListener</span></h1>
+          <p>Monitoreo y automatización de eventos en tiempo real</p>
+        </div>
+      </div>
+
+      <!-- Control de Conexión -->
+      <div class="connection-control glass-panel">
+        <div class="input-group">
+          <span class="input-addon">@</span>
+          <input type="text" id="username-input" placeholder="usuario_tiktok" value="cbermudezg">
+        </div>
+        <button id="connect-btn" class="btn btn-primary">
+          <i class="fas fa-plug"></i> Conectar
+        </button>
+        <div id="status-indicator" class="status-badge disconnected">
+          <span class="status-dot"></span>
+          <span class="status-text">Desconectado</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Layout Principal -->
+    <main class="main-layout">
+      <!-- Columna Izquierda/Centro: Juego y Chat -->
+      <div class="left-column">
+        <!-- Navegación de Pestañas de Juegos -->
+        <div class="game-tabs-nav glass-panel">
+          <button class="tab-btn active" data-target="battle-game-tab">
+            <i class="fas fa-gamepad game-icon-color"></i> Batalla Real 🥊
+          </button>
+          <button class="tab-btn" data-target="next-game-tab">
+            <i class="fas fa-rocket text-purple"></i> Próximo Juego 🎮
+          </button>
+        </div>
+
+        <!-- Contenido de Pestaña: Batalla Real -->
+        <div id="battle-game-tab" class="tab-content active">
+          <!-- Panel Lanzador de Batalla Real -->
+          <section class="battle-panel glass-panel launcher-panel">
+            <div class="section-header">
+              <h2><i class="fas fa-play-circle game-icon-color"></i> Lanzador de Batalla Real</h2>
+              <div class="battle-stats">
+                <span class="stat stat-blue">Equipo 1: <strong id="team1-count">0</strong></span>
+                <span class="stat stat-pink">Equipo 2: <strong id="team2-count">0</strong></span>
+              </div>
+            </div>
+            <div class="launcher-body">
+              <div class="launcher-info-card">
+                <div class="launcher-icon"><i class="fas fa-gamepad text-cyan"></i></div>
+                <div class="launcher-desc">
+                  <h3>Batalla Real 1 vs 2 🥊</h3>
+                  <p>Los espectadores se unen al live y eligen equipo escribiendo "1" o "2" en el chat. Los personajes creados combaten de manera autónoma con animaciones premium.</p>
+                  <p class="launcher-note">Ideal para capturar esta ventana por separado en OBS para tu stream.</p>
+                </div>
+              </div>
+              <div class="launcher-actions">
+                <button id="launch-game-btn" class="btn btn-primary btn-lg">
+                  <i class="fas fa-external-link-alt"></i> Lanzar Juego en Ventana Externa 🚀
+                </button>
+                <div id="window-status" class="window-status disconnected">
+                  <span class="status-dot"></span> <span class="status-text">Ventana del Juego Inactiva</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Contenido de Pestaña: Próximo Juego Placeholder -->
+        <div id="next-game-tab" class="tab-content hidden">
+          <section class="battle-panel glass-panel placeholder-game-panel">
+            <div class="section-header">
+              <h2><i class="fas fa-rocket text-purple"></i> Integración del Próximo Juego</h2>
+            </div>
+            <div class="placeholder-game-body">
+              <div class="placeholder-art">
+                <i class="fas fa-dice-d20 fa-spin text-purple"></i>
+              </div>
+              <h3>Próximo Videojuego Interactivo</h3>
+              <p>Esta pestaña servirá para integrar tu siguiente videojuego interactivo para streams (ej. Carrera de Autos, Torre de Regalos, etc.).</p>
+              <p class="sub-text">Recibirá los mismos eventos estándar de TikTok Live emitidos por el conector.</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- Feed en Vivo -->
+        <section class="chat-section glass-panel">
+          <div class="section-header">
+            <h2><i class="fas fa-comments chat-icon-color"></i> Feed en Vivo</h2>
+            <div class="feed-stats">
+              <span id="viewer-count-display" class="stat"><i class="fas fa-eye"></i> Live</span>
+            </div>
+          </div>
+          <div id="live-chat-feed" class="chat-feed-container">
+            <div class="system-msg">
+              <span class="time">00:00</span>
+              <span class="text">Bienvenido al Dashboard. Conéctate a un live y escribe "1" o "2" en el chat de TikTok para unirte al campo de batalla.</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Columna Derecha: Scoreboard de Batalla y Regalos -->
+      <section class="side-column">
+        <!-- Sub-panel: Marcador de Jugadores -->
+        <div class="scoreboard-panel glass-panel">
+          <div class="section-header">
+            <h2><i class="fas fa-trophy trophy-icon-color"></i> Tabla de Guerreros</h2>
+          </div>
+          <div class="team-lists-container">
+            <div class="team-list-column">
+              <h3 class="team-title-t1">Equipo 1 (Escribe 1)</h3>
+              <div id="t1-players-list" class="team-players-list">
+                <div class="empty-list-msg">Sin guerreros</div>
+              </div>
+            </div>
+            <div class="team-list-column">
+              <h3 class="team-title-t2">Equipo 2 (Escribe 2)</h3>
+              <div id="t2-players-list" class="team-players-list">
+                <div class="empty-list-msg">Sin guerreros</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-panel: Regalos Recibidos -->
+        <div class="gifts-panel glass-panel">
+          <div class="section-header">
+            <h2><i class="fas fa-gift gift-icon-color"></i> Regalos</h2>
+          </div>
+          <div class="gifts-grid" id="gifts-grid">
+            <div class="empty-gifts-msg" id="empty-gifts-msg">
+              <i class="fas fa-gift"></i>
+              <p>Aún no se han recibido regalos</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Overlay de Gran Regalo Animado -->
+    <div id="big-gift-overlay" class="gift-overlay hidden">
+      <div class="gift-announcement-card glass-panel animate-gift">
+        <div class="sparkles"></div>
+        <div class="announcement-header">🎉¡SÚPER REGALO!🎉</div>
+        <div class="gift-sender-avatar">
+          <img id="overlay-user-avatar" src="" alt="Avatar">
+        </div>
+        <div class="announcement-body">
+          <h4 id="overlay-user-name">Usuario</h4>
+          <p>envió un</p>
+          <h3 id="overlay-gift-name" class="gradient-text">Regalo Especial</h3>
+          <div class="gift-display">
+            <img id="overlay-gift-image" src="" alt="Gift">
+            <span class="multiplier" id="overlay-gift-count">x1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor para Corazones Flotantes (Likes) -->
+    <div id="hearts-container" class="hearts-container"></div>
+  </div>
+
+  <!-- Socket.io -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const socket = io();
+
+      // UI Elements
+      const usernameInput = document.getElementById("username-input");
+      const connectBtn = document.getElementById("connect-btn");
+      const statusIndicator = document.getElementById("status-indicator");
+      const statusText = statusIndicator.querySelector(".status-text");
+
+      const liveChatFeed = document.getElementById("live-chat-feed");
+
+      const giftsGrid = document.getElementById("gifts-grid");
+      const emptyGiftsMsg = document.getElementById("empty-gifts-msg");
+      const bigGiftOverlay = document.getElementById("big-gift-overlay");
+      const heartsContainer = document.getElementById("hearts-container");
+      let isConnected = false;
+      let giftStats = {};
+
+      // Cargar configuraciones guardadas
+      const savedUsername = localStorage.getItem("tiktok_username");
+      if (savedUsername) usernameInput.value = savedUsername;
+
+      // Connect / Disconnect Handler
+      connectBtn.addEventListener("click", () => {
+        if (isConnected) {
+          socket.emit("disconnect-tiktok");
+        } else {
+          const username = usernameInput.value.trim();
+          if (!username) {
+            alert("Por favor ingresa un nombre de usuario de TikTok");
+            return;
+          }
+          // Guardar en localStorage
+          localStorage.setItem("tiktok_username", username);
+          
+          socket.emit("connect-tiktok", { username });
+        }
+      });
+
+      // Socket Event Listeners
+
+      // Status Update
+      socket.on("status-update", (status) => {
+        isConnected = status.connected;
+        
+        statusIndicator.className = "status-badge";
+        
+        if (status.connecting) {
+          statusIndicator.classList.add("connecting");
+          statusText.textContent = "Conectando...";
+          connectBtn.disabled = true;
+          connectBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Conectando';
+        } else if (status.connected) {
+          statusIndicator.classList.add("connected");
+          statusText.textContent = "Conectado";
+          usernameInput.disabled = true;
+          connectBtn.disabled = false;
+          connectBtn.className = "btn btn-danger";
+          connectBtn.innerHTML = '<i class="fas fa-unlink"></i> Desconectar';
+          
+          appendSystemMsg(`Conectado al stream de @${status.username}`);
+        } else {
+          statusIndicator.classList.add("disconnected");
+          statusText.textContent = "Desconectado";
+          usernameInput.disabled = false;
+          connectBtn.disabled = false;
+          connectBtn.className = "btn btn-primary";
+          connectBtn.innerHTML = '<i class="fas fa-plug"></i> Conectar';
+          
+          if (status.username === null && isConnected) {
+            appendSystemMsg(`Desconectado del live`);
+          }
+        }
+      });
+
+      // Error Message
+      socket.on("error-message", (err) => {
+        alert(err.message);
+        appendSystemMsg(`Error: ${err.message}`, "error-msg");
+      });
+
+      // System Event Logging
+      socket.on("system-event", (sysEvent) => {
+        appendSystemMsg(sysEvent.message, sysEvent.type);
+      });
+
+      // Live Events Stream
+      socket.on("live-event", (event) => {
+        switch(event.type) {
+          case "chat":
+            appendChatMessage(event);
+            // Check if comment is exactly "1" or "2" to join teams
+            const commentTrimmed = event.comment.trim();
+            if (commentTrimmed === "1") {
+              joinPlayer(event.uniqueId, event.nickname, event.profilePictureUrl, 1);
+            } else if (commentTrimmed === "2") {
+              joinPlayer(event.uniqueId, event.nickname, event.profilePictureUrl, 2);
+            }
+            break;
+          case "gift":
+            handleGift(event);
+            break;
+          case "like":
+            handleLike(event);
+            break;
+          case "join":
+            appendSystemFeedMsg(event, "se unió al live", "fa-user text-cyan");
+            break;
+          case "follow":
+            appendSystemFeedMsg(event, "siguió al creador", "fa-plus-circle text-pink");
+            break;
+          case "share":
+            appendSystemFeedMsg(event, "compartió el live", "fa-share-alt text-purple");
+            break;
+        }
+      });
+
+      // ================= GAME LAUNCHER SYSTEM =================
+      const launchGameBtn = document.getElementById("launch-game-btn");
+      const windowStatus = document.getElementById("window-status");
+      const t1List = document.getElementById("t1-players-list");
+      const t2List = document.getElementById("t2-players-list");
+      const team1CountDisp = document.getElementById("team1-count");
+      const team2CountDisp = document.getElementById("team2-count");
+
+      let gameWindow = null;
+
+      // Launch Game in External Window
+      launchGameBtn.addEventListener("click", () => {
+        if (gameWindow && !gameWindow.closed) {
+          gameWindow.focus();
+        } else {
+          gameWindow = window.open("battle.html", "TikTokBattleGame", "width=1000,height=650,resizable=yes");
+          updateWindowStatus(true);
+
+          // Listen for window close
+          const timer = setInterval(() => {
+            if (!gameWindow || gameWindow.closed) {
+              clearInterval(timer);
+              updateWindowStatus(false);
+            }
+          }, 1000);
+        }
+      });
+
+      function updateWindowStatus(active) {
+        if (active) {
+          windowStatus.className = "window-status connected";
+          windowStatus.querySelector(".status-text").textContent = "Ventana del Juego Activa";
+          appendSystemMsg("Ventana de Batalla Real lanzada con éxito. Pulsa 'Iniciar' dentro de la ventana de juego para comenzar.");
+        } else {
+          windowStatus.className = "window-status disconnected";
+          windowStatus.querySelector(".status-text").textContent = "Ventana del Juego Inactiva";
+          t1List.innerHTML = '<div class="empty-list-msg">Sin guerreros</div>';
+          t2List.innerHTML = '<div class="empty-list-msg">Sin guerreros</div>';
+          team1CountDisp.textContent = "0";
+          team2CountDisp.textContent = "0";
+          appendSystemMsg("La ventana del juego ha sido cerrada.");
+        }
+      }
+
+      // Listen for game state messages from the external window
+      window.addEventListener("message", (e) => {
+        const data = e.data;
+        if (data && data.type === 'game-state') {
+          renderDashboardTeamList(data.team1, t1List);
+          renderDashboardTeamList(data.team2, t2List);
+          team1CountDisp.textContent = data.team1.length;
+          team2CountDisp.textContent = data.team2.length;
+        }
+      });
+
+      function renderDashboardTeamList(list, container) {
+        container.innerHTML = "";
+        if (!list || list.length === 0) {
+          container.innerHTML = '<div class="empty-list-msg">Sin guerreros</div>';
+          return;
+        }
+
+        list.forEach(p => {
+          const div = document.createElement("div");
+          div.className = `team-player-row ${p.isDead ? 'dead' : ''}`;
+          
+          div.innerHTML = `
+            <img src="${p.avatarUrl || 'https://www.tiktok.com/favicon.ico'}" alt="Avatar">
+            <span class="team-player-name" title="${p.nickname}">${p.nickname}</span>
+            <div class="team-player-hp-bar">
+              <div class="team-player-hp-val" style="width: ${p.hp}%"></div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      // Pestañas Switching Logic
+      const tabBtns = document.querySelectorAll(".game-tabs-nav .tab-btn");
+      const tabContents = document.querySelectorAll(".tab-content");
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          tabContents.forEach(content => content.classList.add("hidden"));
+          const targetId = btn.getAttribute("data-target");
+          document.getElementById(targetId).classList.remove("hidden");
+        });
+      });
+
+      // Helper Functions
+      function getTimeString() {
+        const now = new Date();
+        return now.toTimeString().split(" ")[0].substring(0, 5);
+      }
+
+      function appendSystemMsg(text, type = "system-msg") {
+        const div = document.createElement("div");
+        div.className = type;
+        div.innerHTML = `<span class="time">${getTimeString()}</span> <span class="text">${text}</span>`;
+        liveChatFeed.appendChild(div);
+        scrollFeed();
+      }
+
+      function appendSystemFeedMsg(event, text, iconClass) {
+        const div = document.createElement("div");
+        div.className = "feed-sys-event animate-fade-in";
+        
+        const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
+        div.innerHTML = `
+          <span class="time">${getTimeString()}</span>
+          <img src="${avatar}" class="feed-avatar" alt="Avatar">
+          <span class="user-name">${event.nickname || event.uniqueId}</span>
+          <span class="event-desc"><i class="fas ${iconClass}"></i> ${text}</span>
+        `;
+        liveChatFeed.appendChild(div);
+        scrollFeed();
+      }
+
+      function appendChatMessage(event) {
+        const div = document.createElement("div");
+        div.className = "chat-msg-card animate-fade-in";
+        
+        const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
+        div.innerHTML = `
+          <img src="${avatar}" class="chat-avatar" alt="Avatar">
+          <div class="msg-content-wrapper">
+            <div class="msg-header">
+              <span class="user-nickname">${event.nickname || event.uniqueId}</span>
+              <span class="user-id">@${event.uniqueId}</span>
+              <span class="msg-time">${getTimeString()}</span>
+            </div>
+            <p class="msg-body">${escapeHTML(event.comment)}</p>
+          </div>
+        `;
+        liveChatFeed.appendChild(div);
+        scrollFeed();
+      }
+
+      function scrollFeed() {
+        liveChatFeed.scrollTop = liveChatFeed.scrollHeight;
+        while (liveChatFeed.children.length > 100) {
+          liveChatFeed.removeChild(liveChatFeed.firstChild);
+        }
+      }
+
+      function escapeHTML(str) {
+        return str.replace(/[&<>'"]/g, 
+          tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+        );
+      }
+
+      // Handle Gift
+      function handleGift(event) {
+        const div = document.createElement("div");
+        div.className = "feed-sys-event gift-msg animate-fade-in";
+        const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
+        const giftPic = event.giftPictureUrl || "https://www.tiktok.com/favicon.ico";
+        
+        div.innerHTML = `
+          <span class="time">${getTimeString()}</span>
+          <img src="${avatar}" class="feed-avatar" alt="Avatar">
+          <span class="user-name">${event.nickname || event.uniqueId}</span>
+          <span class="event-desc gift-desc">
+            envió <strong>${event.giftName}</strong> x${event.repeatCount}
+            <img src="${giftPic}" class="feed-gift-icon" alt="Gift">
+          </span>
+        `;
+        liveChatFeed.appendChild(div);
+        scrollFeed();
+
+        updateGiftStats(event);
+
+        if (event.diamondCount >= 10 || event.giftName === "Universo TikTok" || event.giftName === "Caja de Música") {
+          triggerBigGiftOverlay(event);
+        }
+      }
+
+      function updateGiftStats(event) {
+        if (emptyGiftsMsg) {
+          emptyGiftsMsg.style.display = "none";
+        }
+
+        const giftKey = event.giftId || event.giftName;
+        
+        if (!giftStats[giftKey]) {
+          giftStats[giftKey] = {
+            name: event.giftName,
+            count: 0,
+            icon: event.giftPictureUrl || "https://www.tiktok.com/favicon.ico"
+          };
+
+          const card = document.createElement("div");
+          card.className = "gift-card glass-panel animate-pop-in";
+          card.id = `gift-card-${giftKey}`;
+          card.innerHTML = `
+            <img src="${giftStats[giftKey].icon}" class="gift-card-img" alt="${event.giftName}">
+            <div class="gift-card-info">
+              <h4>${event.giftName}</h4>
+              <p>Total: <span class="count-num" id="gift-count-${giftKey}">0</span></p>
+            </div>
+          `;
+          giftsGrid.appendChild(card);
+        }
+
+        giftStats[giftKey].count += event.repeatCount;
+        const countSpan = document.getElementById(`gift-count-${giftKey}`);
+        if (countSpan) {
+          countSpan.textContent = giftStats[giftKey].count;
+          const card = document.getElementById(`gift-card-${giftKey}`);
+          card.classList.remove("animate-pulse");
+          void card.offsetWidth;
+          card.classList.add("animate-pulse");
+        }
+      }
+
+      function triggerBigGiftOverlay(event) {
+        const overlayAvatar = document.getElementById("overlay-user-avatar");
+        const overlayName = document.getElementById("overlay-user-name");
+        const overlayGiftName = document.getElementById("overlay-gift-name");
+        const overlayGiftImage = document.getElementById("overlay-gift-image");
+        const overlayGiftCount = document.getElementById("overlay-gift-count");
+
+        overlayAvatar.src = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
+        overlayName.textContent = event.nickname || event.uniqueId;
+        overlayGiftName.textContent = event.giftName;
+        overlayGiftImage.src = event.giftPictureUrl || "https://www.tiktok.com/favicon.ico";
+        overlayGiftCount.textContent = `x${event.repeatCount}`;
+
+        bigGiftOverlay.classList.remove("hidden");
+        bigGiftOverlay.classList.add("visible");
+
+        setTimeout(() => {
+          bigGiftOverlay.classList.remove("visible");
+          setTimeout(() => {
+            bigGiftOverlay.classList.add("hidden");
+          }, 400);
+        }, 3500);
+      }
+
+      function handleLike(event) {
+        if (Math.random() < 0.3) {
+          const div = document.createElement("div");
+          div.className = "feed-sys-event like-msg animate-fade-in";
+          const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
+          div.innerHTML = `
+            <span class="time">${getTimeString()}</span>
+            <img src="${avatar}" class="feed-avatar" alt="Avatar">
+            <span class="user-name">${event.nickname || event.uniqueId}</span>
+            <span class="event-desc"><i class="fas fa-heart text-pink"></i> le dio me gusta al live (x${event.likeCount})</span>
+          `;
+          liveChatFeed.appendChild(div);
+          scrollFeed();
+        }
+
+        const heartsToCreate = Math.min(event.likeCount, 5);
+        for (let i = 0; i < heartsToCreate; i++) {
+          createFloatingHeart();
+        }
+      }
+
+      function createFloatingHeart() {
+        const heart = document.createElement("div");
+        heart.className = "floating-heart";
+        
+        const heartIcons = ["fa-heart", "fa-heart", "fa-smile-beam", "fa-thumbs-up", "fa-star"];
+        const randomIcon = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+        
+        const colors = ["#fe0979", "#00f2fe", "#fffc00", "#b92ffc", "#ff5e62", "#2ffc7a"];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+        heart.innerHTML = `<i class="fas ${randomIcon}"></i>`;
+        heart.style.color = randomColor;
+        
+        const minLeft = window.innerWidth - 120;
+        const randomLeft = minLeft + Math.random() * 80;
+        heart.style.left = `${randomLeft}px`;
+        
+        const size = 18 + Math.random() * 14;
+        heart.style.fontSize = `${size}px`;
+
+        const duration = 2 + Math.random() * 1.5;
+        heart.style.animationDuration = `${duration}s`;
+
+        heartsContainer.appendChild(heart);
+
+        setTimeout(() => {
+          heart.remove();
+        }, duration * 1000);
+      }
+    });
+  </script>
+</body>
+</html>

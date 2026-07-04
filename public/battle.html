@@ -1,0 +1,2383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Live Battleground 🥊</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-color: #08090c;
+      --tiktok-pink: #fe0979;
+      --tiktok-cyan: #00f2fe;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --panel-bg: rgba(20, 21, 26, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.08);
+      --font-inter: 'Inter', sans-serif;
+      --font-outfit: 'Outfit', sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-inter);
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Control Panel Overlay */
+    .controls-overlay {
+      display: none !important;
+    }
+    
+    .remote-ctrl-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(10, 11, 16, 0.8);
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      padding: 8px 15px;
+      border-radius: 8px;
+      font-family: var(--font-outfit);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      transition: all 0.2s;
+    }
+    .remote-ctrl-btn:hover { background: rgba(255, 215, 0, 0.15); }
+
+    .controls-overlay {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      right: 15px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 10px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      transition: opacity 0.3s ease, pointer-events 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .controls-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ctrl-label {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 13px;
+      color: #fff;
+    }
+
+    /* Inputs */
+    .input-field {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--tiktok-cyan);
+    }
+
+    .size-input {
+      width: 65px;
+      text-align: center;
+    }
+
+    .url-input {
+      width: 200px;
+    }
+
+    /* Buttons */
+    .btn {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-primary);
+    }
+
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-t1 {
+      border-color: rgba(0, 242, 254, 0.3);
+      color: var(--tiktok-cyan);
+    }
+    .btn-t1:hover {
+      background: rgba(0, 242, 254, 0.1);
+      border-color: var(--tiktok-cyan);
+    }
+
+    .btn-t2 {
+      border-color: rgba(254, 9, 121, 0.3);
+      color: var(--tiktok-pink);
+    }
+    .btn-t2:hover {
+      background: rgba(254, 9, 121, 0.1);
+      border-color: var(--tiktok-pink);
+    }
+
+    /* Game Area */
+    .game-viewport {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    #battle-canvas {
+      background-color: #0c0d12;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      display: block;
+      transition: width 0.3s ease, height 0.3s ease;
+    }
+
+    /* Pause Overlay */
+    .pause-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(8, 9, 12, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      gap: 15px;
+      transition: opacity 0.3s ease;
+      border-radius: 8px;
+    }
+
+    .pause-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .pause-overlay i {
+      font-size: 50px;
+      color: var(--warning);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    .pause-overlay h2 {
+      font-family: var(--font-outfit);
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .pause-overlay p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 320px;
+      text-align: center;
+    }
+
+    /* Show Controls Hint */
+    .show-controls-hint {
+      position: absolute;
+      bottom: 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      opacity: 0.5;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.4)); }
+      100% { transform: scale(1.1); filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.8)); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Controls Overlay Bar -->
+  <div class="controls-overlay" id="controls-bar">
+    <div class="ctrl-group">
+      <button id="start-btn" class="btn btn-success"><i class="fas fa-play"></i> Iniciar</button>
+      <button id="reset-btn" class="btn btn-outline"><i class="fas fa-redo"></i> Reiniciar</button>
+      <button id="open-podium-btn" class="btn btn-outline" style="border-color:var(--primary);color:var(--primary)"><i class="fas fa-trophy"></i> Abrir Podio</button>
+    </div>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Tamaño:</span>
+      <input type="number" id="canvas-w" class="input-field size-input" value="420" min="200" max="1920">
+      <span style="color:var(--text-secondary)">x</span>
+      <input type="number" id="canvas-h" class="input-field size-input" value="650" min="300" max="1080">
+    </div>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Tiempo (min):</span>
+      <input type="number" id="time-limit" class="input-field size-input" value="5" min="1" max="60">
+      <button id="end-match-btn" class="btn btn-danger" style="display:none;"><i class="fas fa-stop"></i> Terminar</button>
+    </div>
+
+    <div class="ctrl-group">
+      <span class="ctrl-label">Fondo:</span>
+      <input type="file" id="bg-file" accept="image/*" style="display:none">
+      <button id="bg-file-btn" class="btn btn-outline"><i class="fas fa-upload"></i> Subir Imagen</button>
+    </div>
+
+    <div class="ctrl-group">
+      <input type="text" id="sim-user" class="input-field" style="width:90px" placeholder="Simulado...">
+      <button id="sim-t1" class="btn btn-outline btn-t1" title="Unir al Equipo 1"><i class="fas fa-plus"></i> Eq 1</button>
+      <button id="sim-t2" class="btn btn-outline btn-t2" title="Unir al Equipo 2"><i class="fas fa-plus"></i> Eq 2</button>
+      <input type="number" id="sim-coins" class="input-field size-input" style="width:45px" value="5" min="1">
+      <button id="sim-gift" class="btn btn-outline" style="border-color:rgba(245,158,11,0.4);color:var(--warning)" title="Simular envío de Regalo"><i class="fas fa-gift"></i> Regalo</button>
+    </div>
+
+    <div class="ctrl-group">
+      <button id="hide-ctrls-btn" class="btn btn-danger btn-sm" title="Ocultar (Presiona C o doble clic para mostrar)"><i class="fas fa-eye-slash"></i> Ocultar</button>
+    </div>
+  </div>
+
+  <!-- Viewport Area containing Canvas -->
+  
+  <div class="game-viewport" id="viewport">
+    <canvas id="battle-canvas" width="420" height="650"></canvas>
+
+    <!-- Pause Indicator -->
+    <div class="pause-overlay" id="pause-screen">
+      <i class="fas fa-pause-circle"></i>
+      <h2>Juego en Espera</h2>
+      <p>Pulsa "Iniciar" en la barra superior para habilitar el socket y recibir eventos en vivo.</p>
+    </div>
+  </div>
+
+  <div class="show-controls-hint" id="hint-text">Presiona la tecla "C" o haz Doble Clic para mostrar los controles</div>
+
+  <!-- Socket.io client library -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const socket = io();
+
+      // UI Elements
+      const canvas = document.getElementById("battle-canvas");
+      const ctx = canvas.getContext("2d");
+      const startBtn = document.getElementById("start-btn");
+      const resetBtn = document.getElementById("reset-btn");
+      const canvasWInput = document.getElementById("canvas-w");
+      const canvasHInput = document.getElementById("canvas-h");
+      const bgFileBtn = document.getElementById("bg-file-btn");
+      const bgFileInput = document.getElementById("bg-file");
+      const simUserInput = document.getElementById("sim-user");
+      const simT1Btn = document.getElementById("sim-t1");
+      const simT2Btn = document.getElementById("sim-t2");
+      const simCoinsInput = document.getElementById("sim-coins");
+      const simGiftBtn = document.getElementById("sim-gift");
+      const hideCtrlsBtn = document.getElementById("hide-ctrls-btn");
+      const controlsBar = document.getElementById("controls-bar");
+      const pauseScreen = document.getElementById("pause-screen");
+      const hintText = document.getElementById("hint-text");
+
+      // State & Entities
+      let isGameActive = false;
+      let bgImage = null;
+      const STATE_WAITING = 0;
+      const STATE_PLAYING = 1;
+      const STATE_GAMEOVER = 2;
+      let gameState = STATE_WAITING;
+      let matchEndTime = 0;
+      let podiumData = null;
+      let lastLeaderboardEmit = 0;
+      let killsTeam1 = 0;
+      let killsTeam2 = 0;
+      let team1Name = "EQUIPO 1";
+      let team2Name = "EQUIPO 2";
+      
+      let playersTeam1 = [];
+      let playersTeam2 = [];
+      let projectiles = [];
+      let particles = [];
+      let damageTexts = [];
+      let gameLoopId = null;
+      let screenShake = 0;
+
+      // Sound Engine (Web Audio API with MP3 support)
+      const SoundEngine = {
+        ctx: null,
+        buffers: {},
+        init() {
+          if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        },
+        async _load(url) {
+          if (this.buffers[url]) return this.buffers[url];
+          try {
+            const res = await fetch(url);
+            const arrayBuffer = await res.arrayBuffer();
+            const audioBuffer = await this.ctx.decodeAudioData(arrayBuffer);
+            this.buffers[url] = audioBuffer;
+            return audioBuffer;
+          } catch(e) {
+            return null;
+          }
+        },
+        async _play(url, coins) {
+          if (!this.ctx) return;
+          const buffer = await this._load(url);
+          if (!buffer) return;
+          const source = this.ctx.createBufferSource();
+          source.buffer = buffer;
+          const gainNode = this.ctx.createGain();
+          
+          // Calcular volumen: regalos grandes suenan más fuerte, regalos pequeños suenan de fondo
+          let vol;
+          if (coins === 0) {
+            vol = 0.05; // Volumen muy bajo para autodisparos
+          } else {
+            // Math.log10 escala suavemente: 1->0, 10->1, 100->2, 1000->3
+            vol = Math.min(1.0, 0.15 + (Math.log10(coins || 1) * 0.3));
+          }
+          
+          gainNode.gain.value = vol;
+          
+          source.connect(gainNode);
+          gainNode.connect(this.ctx.destination);
+          source.start(0);
+        },
+        playLaunch(coins) {
+          if (coins === undefined || coins === null) coins = 0;
+          this._play(`sounds/${coins}/1.mp3`, coins);
+        },
+        playCollision(coins) {
+          // Sonido de colisión deshabilitado a petición del usuario
+        }
+      };
+
+      // Player & Entity Classes
+      class Player {
+        constructor(username, nickname, avatarUrl, team) {
+          this.username = username;
+          this.nickname = nickname || username;
+          this.avatarUrl = avatarUrl || "https://www.tiktok.com/favicon.ico";
+          this.team = team;
+          this.hp = 500;
+          this.maxHp = 500;
+          this.radius = 12;
+          this.coinsSent = 0;
+          this.defense = 0.0;
+          this.isDead = false;
+          this.lastShot = Date.now() + Math.random() * 500;
+          this.shootCooldown = 600 + Math.random() * 600;
+          this.img = null;
+          this.randomSeed = Math.random() * 100;
+          this.fadeAlpha = 1.0;
+          this.superShotTimer = 0;
+          this.superSpeedTimer = 0;
+          this.electroTimer = 0;
+          this.vx = 0;
+          this.damageDealt = 0;
+
+          this.calculateSpawn();
+
+          if (this.avatarUrl) {
+            const image = new Image();
+            image.src = this.avatarUrl;
+            image.onload = () => { this.img = image; };
+            image.onerror = () => { this.img = "failed"; };
+          }
+        }
+
+        calculateSpawn() {
+          if (this.team === 1) {
+            this.x = 40 + Math.random() * (canvas.width * 0.25);
+            this.y = 40 + Math.random() * (canvas.height - 80);
+          } else {
+            this.x = canvas.width - (canvas.width * 0.25) - 40 + Math.random() * (canvas.width * 0.25);
+            this.y = 40 + Math.random() * (canvas.height - 80);
+          }
+        }
+
+        draw() {
+          if (this.isDead) {
+            this.fadeAlpha -= 0.02;
+          }
+
+          // Smooth sliding friction physics & boundary limits
+          this.x += this.vx;
+          this.vx *= 0.85;
+
+          if (this.team === 1) {
+            if (this.x < 30) { this.x = 30; this.vx = 0; }
+            if (this.x > canvas.width / 2 - 25) { this.x = canvas.width / 2 - 25; this.vx = 0; }
+          } else {
+            if (this.x > canvas.width - 30) { this.x = canvas.width - 30; this.vx = 0; }
+            if (this.x < canvas.width / 2 + 25) { this.x = canvas.width / 2 + 25; this.vx = 0; }
+          }
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.fadeAlpha);
+
+          const bobbingY = this.isDead ? 0 : Math.sin(Date.now() / 400 + this.randomSeed) * 6;
+          let drawX = this.x;
+          let drawY = this.y + bobbingY;
+          
+          if (Date.now() < this.electroTimer) {
+            drawX += (Math.random() - 0.5) * 3.5;
+            drawY += (Math.random() - 0.5) * 3.5;
+          }
+
+          const isSuperActive = Date.now() < this.superShotTimer;
+
+          ctx.shadowBlur = isSuperActive ? 15 : 8;
+          ctx.shadowColor = isSuperActive ? '#ff5e00' : (this.team === 1 ? '#00f2fe' : '#fe0979');
+
+          ctx.beginPath();
+          ctx.arc(drawX, drawY, this.radius + (isSuperActive ? 4 : 2), 0, Math.PI * 2);
+          ctx.fillStyle = isSuperActive ? '#ff5e00' : (this.team === 1 ? '#00f2fe' : '#fe0979');
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.beginPath();
+          ctx.arc(drawX, drawY, this.radius, 0, Math.PI * 2);
+          ctx.clip();
+
+          if (this.img && this.img !== "failed") {
+            ctx.drawImage(this.img, drawX - this.radius, drawY - this.radius, this.radius * 2, this.radius * 2);
+          } else {
+            ctx.fillStyle = '#222';
+            ctx.fill();
+            ctx.font = 'bold 12px Inter, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(this.nickname.substring(0, 2).toUpperCase(), drawX, drawY);
+          }
+
+          ctx.restore();
+
+          // Draw electrocuted zigzag arcs around character
+          if (Date.now() < this.electroTimer) {
+            ctx.save();
+            ctx.strokeStyle = '#ffeb3b';
+            ctx.lineWidth = 1.8;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#ffeb3b';
+            
+            for (let i = 0; i < 3; i++) {
+              ctx.beginPath();
+              let angle = Math.random() * Math.PI * 2;
+              let startR = this.radius + 2;
+              let endR = this.radius + 12;
+              let x1 = drawX + Math.cos(angle) * startR;
+              let y1 = drawY + Math.sin(angle) * startR;
+              let x2 = drawX + Math.cos(angle) * endR;
+              let y2 = drawY + Math.sin(angle) * endR;
+              
+              let midX = (x1 + x2) / 2 + (Math.random() - 0.5) * 6;
+              let midY = (y1 + y2) / 2 + (Math.random() - 0.5) * 6;
+              
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(midX, midY);
+              ctx.lineTo(x2, y2);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.fadeAlpha);
+
+          if (this.isDead) {
+            ctx.beginPath();
+            ctx.arc(drawX, drawY, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(15, 16, 21, 0.75)';
+            ctx.fill();
+            ctx.font = '12px Inter, sans-serif';
+            ctx.fillStyle = '#ff3333';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('❌', drawX, drawY);
+          } else {
+            const barW = 32;
+            const barH = 3;
+            const barX = drawX - barW / 2;
+            const barY = drawY - this.radius - 8;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(barX, barY, barW, barH);
+
+            const hpPercent = Math.max(0, this.hp / this.maxHp);
+            ctx.fillStyle = hpPercent > 0.5 ? '#10b981' : (hpPercent > 0.25 ? '#f59e0b' : '#ef4444');
+            ctx.fillRect(barX, barY, barW * hpPercent, barH);
+            
+            ctx.font = 'bold 8px Inter, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${Math.round(this.hp)} / ${this.maxHp}`, drawX, barY - 3);
+          }
+
+          ctx.font = '9px Inter, sans-serif';
+          ctx.fillStyle = '#e5e7eb';
+          ctx.textAlign = 'center';
+          ctx.fillText(this.nickname, drawX, drawY + this.radius + 10);
+          ctx.restore();
+        }
+
+        takeDamage(amount, attacker = null) {
+          if (this.isDead) return 0;
+          const finalDamage = Math.round(amount * 10) / 10;
+          this.hp = Math.max(0, Math.round((this.hp - finalDamage) * 10) / 10);
+          
+          if (attacker && !attacker.isDummy) {
+            attacker.damageDealt += finalDamage;
+          }
+          
+          if (this.hp <= 0) {
+            this.isDead = true;
+            createExplosion(this.x, this.y, this.team === 1 ? '#00f2fe' : '#fe0979', 20);
+            
+            // Track kills
+            if (attacker && !attacker.isDummy) {
+              if (attacker.team === 1) killsTeam1++;
+              else killsTeam2++;
+            } else {
+              // If no specific attacker, give kill to the opposing team
+              if (this.team === 1) killsTeam2++;
+              else killsTeam1++;
+            }
+          }
+          return finalDamage;
+        }
+      }
+
+      class Projectile {
+        constructor(startX, startY, target, team, type = 'normal', knockback = 0, source = null, coins = 0) {
+          this.x = startX;
+          this.y = startY;
+          this.target = target;
+          this.team = team;
+          this.type = type;
+          this.knockback = knockback;
+          this.source = source;
+          this.coins = coins;
+          
+          this.isSuper = (type === 'fire');
+          this.speed = (type === 'kiesan') ? 9.0 : ((type === 'makankosapo') ? 10.0 : ((type === 'genkidama') ? 2.0 : ((type === 'bolitak') ? 6.5 : (type === 'fire' ? 8.0 : 10.2))));
+          this.radius = (type === 'kiesan') ? 16 : ((type === 'makankosapo') ? 10 : ((type === 'genkidama') ? 68 : ((type === 'bolitak') ? 3 : (type === 'push' ? 8 : (type === 'fire' ? 7 : 4)))));
+          this.isHit = false;
+          this.duration = (type === 'kamehameha') ? 45 : 0;
+          
+          // Store initial beam values
+          this.startX = startX;
+          this.startY = startY;
+          
+          this.domElement = null;
+          if (this.type === 'kamehameha') {
+            this.domElement = document.createElement('img');
+            this.domElement.src = 'images/500.gif';
+            this.domElement.style.position = 'absolute';
+            this.domElement.style.pointerEvents = 'none';
+            this.domElement.style.zIndex = '100';
+            this.domElement.style.transformOrigin = '0% 50%';
+            document.getElementById('viewport').appendChild(this.domElement);
+          }
+          
+          // MP3 Launch sound effect based on coins
+          SoundEngine.playLaunch(this.coins);
+        }
+
+        update() {
+          if (this.type === 'kamehameha') {
+            if (!this.source || this.source.isDead || this.target.isDead) {
+              this.isHit = true;
+              return;
+            }
+            
+            // Continuous damage
+            const finalDmg = this.target.takeDamage(2, this.source); // 2 HP per frame
+            if (finalDmg > 0 && Math.random() < 0.15) {
+              createDamageText(this.target.x, this.target.y - 12, `-${finalDmg}`, true);
+            }
+            
+            // Continuous knockback
+            const kbVal = 2.0;
+            if (this.target.team === 1) {
+              this.target.x = Math.max(30, this.target.x - kbVal);
+            } else {
+              this.target.x = Math.min(canvas.width - 30, this.target.x + kbVal);
+            }
+            
+            this.duration--;
+            if (this.duration <= 0) {
+              this.isHit = true;
+              if (this.domElement) this.domElement.remove();
+              
+              SoundEngine.playCollision(this.coins); // Atomic Bomb explosion
+              // Trigger final ATOMIC BOMB explosion at the target's position
+              createAtomicBombExplosion(this.target.x, this.target.y);
+              
+              // Apply splash atomic damage (60 HP) and knockback in 280px radius
+              const enemyTeam = this.target.team;
+              const enemies = enemyTeam === 1 ? playersTeam1 : playersTeam2;
+              enemies.forEach(enemy => {
+                if (!enemy.isDead) {
+                  const distEnemy = Math.hypot(enemy.x - this.target.x, enemy.y - this.target.y);
+                  if (distEnemy < 280) {
+                    const finalDmg = enemy.takeDamage(60, this.source);
+                    if (finalDmg > 0) {
+                      createDamageText(enemy.x, enemy.y - 12, `-${finalDmg} ☢️`, true);
+                    }
+                    const pushVal = 70;
+                    if (enemy.team === 1) {
+                      enemy.vx -= pushVal / 8;
+                    } else {
+                      enemy.vx += pushVal / 8;
+                    }
+                  }
+                }
+              });
+            }
+            return;
+          }
+
+          if (this.target.isDead && this.target.fadeAlpha <= 0) {
+            this.isHit = true;
+            return;
+          }
+
+          // Spark trails
+          if ((this.type === 'fire' || this.isSuper) && Math.random() < 0.3) {
+            particles.push(new Particle(this.x, this.y, '#ff5e00'));
+          } else if (this.type === 'kiesan' && Math.random() < 0.4) {
+            particles.push(new Particle(this.x, this.y, '#ffff00'));
+          } else if (this.type === 'makankosapo' && Math.random() < 0.4) {
+            particles.push(new Particle(this.x, this.y, '#ff00ff'));
+          } else if (this.type === 'genkidama' && Math.random() < 0.6) {
+            particles.push(new Particle(this.x, this.y + (Math.random() - 0.5) * 30, '#00d0ff'));
+          }
+
+          const targetBobbingY = this.target.isDead ? 0 : Math.sin(Date.now() / 400 + this.target.randomSeed) * 6;
+          const targetVisualY = this.target.y + targetBobbingY;
+
+          const dx = this.target.x - this.x;
+          const dy = targetVisualY - this.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist < 12) {
+            this.isHit = true;
+            
+            let dmg = 1;
+            let particleColor = this.team === 1 ? '#00f2fe' : '#fe0979';
+            let particleCount = 8;
+            
+            if (this.type === 'bolitak') {
+              dmg = 0.3;
+              SoundEngine.playCollision(this.coins);
+            } else if (this.type === 'fire') {
+              dmg = 0.5;
+              particleColor = '#ff5e00';
+              particleCount = 18;
+              SoundEngine.playCollision(this.coins);
+            } else if (this.type === 'push') {
+              dmg = 1;
+              particleColor = '#e2e8f0'; // Wind splash silver
+              particleCount = 12;
+              SoundEngine.playCollision(this.coins);
+              
+              // Apply splash knockback & damage to nearby enemies on the opposing team
+              const enemyTeam = this.team === 1 ? playersTeam2 : playersTeam1;
+              enemyTeam.forEach(enemy => {
+                if (enemy !== this.target && !enemy.isDead) {
+                  const distEnemy = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                  if (distEnemy < 120) {
+                    const finalDmg = enemy.takeDamage(1, this.source);
+                    if (finalDmg > 0) {
+                      createDamageText(enemy.x, enemy.y - 12, `-${finalDmg} 💨`, true);
+                    }
+                    if (enemy.team === 1) {
+                      enemy.vx -= this.knockback / 8;
+                    } else {
+                      enemy.vx += this.knockback / 8;
+                    }
+                    createWindExplosion(enemy.x, enemy.y);
+                  }
+                }
+              });
+            } else if (this.type === 'lightning') {
+              dmg = 0; // Handled by splash area below
+              particleColor = '#ffeb3b';
+              particleCount = 15;
+              SoundEngine.playCollision(this.coins);
+              
+              const enemyTeam = this.team === 1 ? playersTeam2 : playersTeam1;
+              enemyTeam.forEach(enemy => {
+                if (!enemy.isDead) {
+                  const distEnemy = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                  if (distEnemy < 180) {
+                    const finalDmg = enemy.takeDamage(2, this.source);
+                    if (finalDmg > 0) {
+                      createDamageText(enemy.x, enemy.y - 12, `-${finalDmg} ⚡`, true);
+                    }
+                    enemy.electroTimer = Date.now() + 2000;
+                    createElectricExplosion(enemy.x, enemy.y);
+                  }
+                }
+              });
+            } else if (this.type === 'kiesan') {
+              dmg = 0; // Handled by splash area below
+              particleColor = '#ffff00';
+              particleCount = 25;
+              SoundEngine.playCollision(this.coins);
+              
+              createFireworksExplosion(this.x, this.y);
+              
+              // Apply splash shockwave of 100px radius
+              const enemyTeam = this.team === 1 ? playersTeam2 : playersTeam1;
+              enemyTeam.forEach(enemy => {
+                if (!enemy.isDead) {
+                  const distEnemy = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                  if (distEnemy < 100) {
+                    const finalDmg = enemy.takeDamage(20, this.source);
+                    if (finalDmg > 0) {
+                      createDamageText(enemy.x, enemy.y - 12, `-${finalDmg} 📀`, true);
+                    }
+                    createExplosion(enemy.x, enemy.y, '#ffff00', 12);
+                  }
+                }
+              });
+            } else if (this.type === 'makankosapo') {
+              dmg = 0; // Handled by splash area below
+              particleColor = '#9d00ff';
+              particleCount = 30;
+              SoundEngine.playCollision(this.coins);
+              
+              createSuperFireworksExplosion(this.x, this.y);
+              
+              // Apply splash shockwave of 150px radius
+              const enemyTeam = this.team === 1 ? playersTeam2 : playersTeam1;
+              enemyTeam.forEach(enemy => {
+                if (!enemy.isDead) {
+                  const distEnemy = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                  if (distEnemy < 150) {
+                    const finalDmg = enemy.takeDamage(30, this.source);
+                    if (finalDmg > 0) {
+                      createDamageText(enemy.x, enemy.y - 12, `-${finalDmg} 🌀`, true);
+                    }
+                    createExplosion(enemy.x, enemy.y, '#9d00ff', 15);
+                  }
+                }
+              });
+            } else if (this.type === 'genkidama') {
+              dmg = 180;
+              particleColor = '#00d0ff';
+              particleCount = 80;
+              SoundEngine.playCollision(this.coins);
+              
+              createGenkidamaExplosion(this.x, this.y);
+              
+              // Deal splash damage to ENTIRE enemy team
+              const enemyTeam = this.team === 1 ? playersTeam2 : playersTeam1;
+              enemyTeam.forEach(enemy => {
+                if (enemy !== this.target && !enemy.isDead) {
+                  const splashDmg = enemy.takeDamage(90, this.source);
+                  if (splashDmg > 0) {
+                    createDamageText(enemy.x, enemy.y - 12, `-${splashDmg} 💥`, true);
+                  }
+                }
+              });
+            }
+            
+            const finalDmg = this.target.takeDamage(dmg, this.source);
+            if (this.type === 'push') {
+               createWindExplosion(this.x, this.y);
+             } else {
+               createExplosion(this.x, this.y, particleColor, particleCount);
+             }
+            
+            if (finalDmg > 0) {
+              const isSuperText = (this.type !== 'normal' && this.type !== 'bolitak');
+              const textVal = isSuperText ? `-${finalDmg} ⚡` : `-${finalDmg}`;
+              createDamageText(this.x, this.y - 12, textVal, isSuperText);
+            }
+            
+            // Apply knockback
+            if (this.knockback > 0) {
+              if (this.target.team === 1) {
+                this.target.vx -= this.knockback / 8;
+              } else {
+                this.target.vx += this.knockback / 8;
+              }
+            }
+
+            if (window.opener && !window.opener.closed) {
+              window.opener.postMessage({ type: 'game-event', action: 'scoreboard-update' }, '*');
+            }
+            return;
+          }
+
+          this.x += (dx / dist) * this.speed;
+          this.y += (dy / dist) * this.speed;
+        }
+
+        draw() {
+          if (this.type === 'kamehameha') {
+            if (this.domElement) {
+              const dx = this.target.x - this.source.x;
+              const dy = this.target.y - this.source.y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              let angle = Math.atan2(dy, dx);
+              
+              // La imagen nativa tiene la cabeza en la izquierda (0%) y las manos en la derecha (100%).
+              // Para que la cabeza esté en el objetivo, anclamos el borde izquierdo al Target y rotamos hacia el Source.
+              let scaleY = this.team === 1 ? -1 : 1;
+              
+              this.domElement.style.width = `${dist}px`;
+              this.domElement.style.height = `140px`;
+              this.domElement.style.left = `${this.target.x}px`;
+              this.domElement.style.top = `${this.target.y - 70}px`;
+              this.domElement.style.transform = `rotate(${angle + Math.PI}rad) scaleY(${scaleY})`;
+            }
+            return;
+          }
+          
+          if (this.type === 'kiesan') {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(Date.now() / 30);
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ffff00';
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Saw teeth
+            ctx.strokeStyle = '#ffbb00';
+            ctx.lineWidth = 2.5;
+            for (let i = 0; i < 8; i++) {
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              const angle = (i * Math.PI / 4);
+              ctx.lineTo(Math.cos(angle) * (this.radius + 5), Math.sin(angle) * (this.radius + 5));
+              ctx.stroke();
+            }
+            ctx.restore();
+            return;
+          }
+          
+          if (this.type === 'makankosapo') {
+            if (this.source && !this.source.isDead) {
+              // 1. Draw straight purple beam with bright inner core
+              ctx.save();
+              ctx.shadowBlur = 15;
+              ctx.shadowColor = '#ff00ff';
+              
+              ctx.strokeStyle = '#9d00ff';
+              ctx.lineWidth = 6;
+              ctx.beginPath();
+              ctx.moveTo(this.source.x, this.source.y);
+              ctx.lineTo(this.x, this.y);
+              ctx.stroke();
+              
+              ctx.strokeStyle = '#ff88ff';
+              ctx.lineWidth = 2.5;
+              ctx.beginPath();
+              ctx.moveTo(this.source.x, this.source.y);
+              ctx.lineTo(this.x, this.y);
+              ctx.stroke();
+              ctx.restore();
+              
+              // 2. Draw spiraling yellow laser helix wrap
+              ctx.save();
+              ctx.shadowBlur = 10;
+              ctx.shadowColor = '#ffff00';
+              ctx.strokeStyle = '#ffff00';
+              ctx.lineWidth = 3.0;
+              ctx.beginPath();
+              
+              const dx = this.x - this.source.x;
+              const dy = this.y - this.source.y;
+              const dist = Math.hypot(dx, dy);
+              const angle = Math.atan2(dy, dx);
+              
+              for (let d = 0; d <= dist; d += 4) {
+                const ratio = d / dist;
+                const lx = this.source.x + dx * ratio;
+                const ly = this.source.y + dy * ratio;
+                
+                const perpendicularAngle = angle + Math.PI / 2;
+                const offsetAmp = 9;
+                const offsetVal = Math.sin((d - Date.now() / 3) / 8) * offsetAmp;
+                
+                const sx = lx + Math.cos(perpendicularAngle) * offsetVal;
+                const sy = ly + Math.sin(perpendicularAngle) * offsetVal;
+                
+                if (d === 0) ctx.moveTo(sx, sy);
+                else ctx.lineTo(sx, sy);
+              }
+              ctx.stroke();
+              ctx.restore();
+            } else {
+              // Fallback if source is missing or dead
+              ctx.save();
+              ctx.shadowBlur = 8;
+              ctx.shadowColor = '#ff00ff';
+              ctx.fillStyle = '#9d00ff';
+              ctx.beginPath();
+              ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+              ctx.fill();
+              
+              ctx.strokeStyle = '#ffff00';
+              ctx.lineWidth = 3;
+              ctx.beginPath();
+              for (let offset = -15; offset <= 15; offset += 3) {
+                const spiralX = this.x + offset;
+                const spiralY = this.y + Math.sin((this.x + offset + Date.now() / 8) / 8) * 8;
+                if (offset === -15) ctx.moveTo(spiralX, spiralY);
+                else ctx.lineTo(spiralX, spiralY);
+              }
+              ctx.stroke();
+              ctx.restore();
+            }
+            return;
+          }
+          
+          if (this.type === 'genkidama') {
+            const t = Date.now();
+            ctx.save();
+            
+            // Outer electric aura
+            ctx.shadowBlur = 55;
+            ctx.shadowColor = '#00eeff';
+            
+            // Main ball: white core + cyan gradient
+            const grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            grad.addColorStop(0.45, 'rgba(130, 230, 255, 0.95)');
+            grad.addColorStop(1, 'rgba(0, 160, 255, 0.7)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Spinning cyan ring
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#00ffff';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 8, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Spinning yellow electric ring
+            ctx.strokeStyle = '#ffff00';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#ffff00';
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 16, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 3 animated electric zigzag arcs orbiting the ball
+            for (let arc = 0; arc < 3; arc++) {
+              const baseAngle = (t / 200 + arc * (Math.PI * 2 / 3));
+              ctx.save();
+              ctx.translate(this.x, this.y);
+              ctx.rotate(baseAngle);
+              ctx.shadowBlur = 12;
+              ctx.shadowColor = '#ffff00';
+              ctx.strokeStyle = '#ffff00';
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              for (let seg = 0; seg <= 12; seg++) {
+                const angle = (seg / 12) * Math.PI * 2;
+                const r = this.radius + 10 + Math.sin(seg * 3 + t / 80) * 8;
+                const px = Math.cos(angle) * r;
+                const py = Math.sin(angle) * r;
+                if (seg === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+              }
+              ctx.closePath();
+              ctx.stroke();
+              ctx.restore();
+            }
+            
+            ctx.restore();
+            return;
+          }
+          if (this.type === 'push') {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            
+            // Orient the crescent moon according to team direction
+            if (this.team === 2) {
+              ctx.scale(-1, 1);
+            }
+            
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = 'rgba(226, 232, 240, 0.9)';
+            
+            ctx.fillStyle = 'rgba(235, 240, 245, 0.85)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.lineWidth = 2.5;
+            
+            ctx.beginPath();
+            // Outer curve arc
+            ctx.arc(4, 0, 26, -Math.PI / 2.5, Math.PI / 2.5, false);
+            // Inner curve arc
+            ctx.arc(-8, 0, 20, Math.PI / 2.5, -Math.PI / 2.5, true);
+            ctx.closePath();
+            
+            ctx.fill();
+            ctx.stroke();
+            
+            // Inner wind shine ripple
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            ctx.arc(0, 0, 22, -Math.PI / 3, Math.PI / 3, false);
+            ctx.stroke();
+            
+            ctx.restore();
+            return;
+          }
+
+          if (this.type === 'bolitak') {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            
+            // Calculate angle towards target
+            const dx = this.target.x - this.x;
+            const dy = this.target.y - this.y;
+            const angle = Math.atan2(dy, dx);
+            ctx.rotate(angle);
+            
+            // Outer orange fire neon glow
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ff5e00';
+            
+            // Rocket body (red capsule)
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 8, 3.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Nose Cone (yellow cone)
+            ctx.fillStyle = '#f59e0b';
+            ctx.beginPath();
+            ctx.moveTo(8, 0);
+            ctx.lineTo(4, -3.5);
+            ctx.lineTo(4, 3.5);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Rocket Fins (dark metal back fins)
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(-8, -4.5, 2, 9);
+            
+            // Flame Tail
+            ctx.fillStyle = '#ff7b00';
+            ctx.beginPath();
+            ctx.moveTo(-8, 0);
+            ctx.lineTo(-17, -2.5);
+            ctx.lineTo(-17, 2.5);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.restore();
+            return;
+          }
+
+          if (this.type === 'lightning') {
+            ctx.save();
+            
+            // Outer neon electrical aura glow
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#ffeb3b';
+            
+            // Draw a bright plasma ball core
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Thicker inner yellow energy boundary ring
+            ctx.strokeStyle = '#ffeb3b';
+            ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Draw 4 large crackling electric zigzag rays branching outwards from the core
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.0;
+            for (let i = 0; i < 4; i++) {
+              ctx.beginPath();
+              let angle = (i * Math.PI / 2) + (Math.random() - 0.5) * 0.5;
+              let x1 = this.x + Math.cos(angle) * 8;
+              let y1 = this.y + Math.sin(angle) * 8;
+              
+              let len = 25 + Math.random() * 15;
+              let x3 = this.x + Math.cos(angle) * len;
+              let y3 = this.y + Math.sin(angle) * len;
+              
+              let midX1 = x1 + (x3 - x1) * 0.33 + (Math.random() - 0.5) * 10;
+              let midY1 = y1 + (y3 - y1) * 0.33 + (Math.random() - 0.5) * 10;
+              let midX2 = x1 + (x3 - x1) * 0.66 + (Math.random() - 0.5) * 10;
+              let midY2 = y1 + (y3 - y1) * 0.66 + (Math.random() - 0.5) * 10;
+              
+              ctx.moveTo(x1, y1);
+              ctx.lineTo(midX1, midY1);
+              ctx.lineTo(midX2, midY2);
+              ctx.lineTo(x3, y3);
+              ctx.stroke();
+            }
+            
+            // Draw a crackling electrical line connecting the shooter (source) to the projectile tip
+            if (this.source && !this.source.isDead) {
+              ctx.strokeStyle = '#ffeb3b';
+              ctx.lineWidth = 2.0;
+              ctx.beginPath();
+              ctx.moveTo(this.source.x, this.source.y);
+              
+              let segs = 4;
+              for (let k = 1; k <= segs; k++) {
+                let ratio = k / segs;
+                let targetSegX = this.source.x + (this.x - this.source.x) * ratio;
+                let targetSegY = this.source.y + (this.y - this.source.y) * ratio;
+                
+                let offsetX = (k === segs) ? 0 : (Math.random() - 0.5) * 16;
+                let offsetY = (k === segs) ? 0 : (Math.random() - 0.5) * 16;
+                
+                ctx.lineTo(targetSegX + offsetX, targetSegY + offsetY);
+              }
+              ctx.stroke();
+            }
+            
+            ctx.restore();
+            return;
+          }
+
+          ctx.save();
+          if (this.isSuper || this.type === 'fire') {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ff5e00';
+          } else if (this.type === 'push') {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#10b981';
+          }
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          
+          if (this.isSuper || this.type === 'fire') {
+            ctx.fillStyle = '#ff5e00';
+          } else if (this.type === 'push') {
+            ctx.fillStyle = '#10b981';
+          } else if (this.type === 'bolitak') {
+            ctx.fillStyle = '#ffffff';
+          } else {
+            ctx.fillStyle = this.team === 1 ? '#00f2fe' : '#fe0979';
+          }
+          
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      class Particle {
+        constructor(x, y, color, type = 'circle') {
+          this.x = x;
+          this.y = y;
+          this.color = color;
+          this.type = type;
+          this.radius = (type === 'ring') ? 10 : (1 + Math.random() * 2);
+          
+          const angle = Math.random() * Math.PI * 2;
+          let speed = (type === 'ring') ? 0 : (0.5 + Math.random() * 2.5);
+          
+          if (type === 'fire-smoke') {
+            this.type = 'circle';
+            this.radius = 8 + Math.random() * 12;
+            speed = 1.0 + Math.random() * 3.5;
+            this.decay = 0.015 + Math.random() * 0.015;
+          } else {
+            this.decay = (type === 'ring') ? 0.035 : (type === 'sparkle' ? 0.015 : (0.02 + Math.random() * 0.02));
+          }
+          
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          this.alpha = 1;
+          
+          if (type === 'sparkle') {
+            this.radius = 2.5 + Math.random() * 3.5;
+          }
+        }
+
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.alpha -= this.decay;
+          if (this.type === 'ring') {
+            this.radius += 4.5;
+          }
+        }
+
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.alpha);
+          
+          if (this.type === 'ring') {
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 2.5;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.stroke();
+          } else if (this.type === 'sparkle') {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y - this.radius * 2.5);
+            ctx.quadraticCurveTo(this.x, this.y, this.x + this.radius * 2.5, this.y);
+            ctx.quadraticCurveTo(this.x, this.y, this.x, this.y + this.radius * 2.5);
+            ctx.quadraticCurveTo(this.x, this.y, this.x - this.radius * 2.5, this.y);
+            ctx.closePath();
+            ctx.fillStyle = '#ffffff'; // White bright core
+            ctx.fill();
+          } else {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+          }
+          
+          ctx.restore();
+        }
+      }
+
+      class DamageText {
+        constructor(x, y, text, isSuper = false) {
+          this.x = x;
+          this.y = y;
+          this.text = text;
+          this.isSuper = isSuper;
+          this.vy = isSuper ? -0.8 : (-0.5 - Math.random() * 0.5);
+          this.alpha = 1;
+          this.decay = isSuper ? 0.015 : 0.02;
+        }
+
+        update() {
+          this.y += this.vy;
+          this.alpha -= this.decay;
+        }
+
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, this.alpha);
+          if (this.text.includes('+')) {
+            ctx.fillStyle = '#10b981';
+          } else {
+            ctx.fillStyle = this.isSuper ? '#ffa600' : '#ff4444';
+          }
+          if (this.isSuper) {
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = '#ff5e00';
+          }
+          ctx.textAlign = 'center';
+          ctx.fillText(this.text, this.x, this.y);
+          ctx.restore();
+        }
+      }
+
+      function createExplosion(x, y, color, count) {
+        for (let i = 0; i < count; i++) {
+          particles.push(new Particle(x, y, color));
+        }
+      }
+
+      function createWindExplosion(x, y) {
+        // Expanding energy ring
+        particles.push(new Particle(x, y, '#e2e8f0', 'ring'));
+        
+        // Starburst flares (destellos)
+        for (let i = 0; i < 8; i++) {
+          particles.push(new Particle(x, y, 'rgba(226, 232, 240, 0.95)', 'sparkle'));
+        }
+        
+        // Dust clouds
+        for (let i = 0; i < 10; i++) {
+          particles.push(new Particle(x, y, '#f8fafc', 'circle'));
+        }
+      }
+
+      function createElectricExplosion(x, y) {
+        // Starburst flares (destellos) in bright yellow
+        for (let i = 0; i < 8; i++) {
+          particles.push(new Particle(x, y, '#ffeb3b', 'sparkle'));
+        }
+      }
+
+      function createFireBombExplosion(x, y) {
+        // Expanding fiery ring shockwaves at different colors
+        particles.push(new Particle(x, y, '#ff2f00', 'ring'));
+        particles.push(new Particle(x, y, '#ff7b00', 'ring'));
+        particles.push(new Particle(x, y, '#ffeb3b', 'ring'));
+        
+        // Massive amount of dense burning embers (starbursts)
+        for (let i = 0; i < 25; i++) {
+          particles.push(new Particle(x, y, '#ff2f00', 'sparkle'));
+          particles.push(new Particle(x, y, '#ff7b00', 'sparkle'));
+          particles.push(new Particle(x, y, '#ffeb3b', 'sparkle'));
+        }
+        
+        // Large expanding fiery smoke clouds
+        for (let i = 0; i < 15; i++) {
+          particles.push(new Particle(x, y, 'rgba(255, 47, 0, 0.75)', 'fire-smoke'));
+          particles.push(new Particle(x, y, 'rgba(255, 123, 0, 0.65)', 'fire-smoke'));
+          particles.push(new Particle(x, y, 'rgba(255, 235, 59, 0.55)', 'fire-smoke'));
+        }
+      }
+
+      function createFireworksExplosion(x, y) {
+        // Core firebomb explosion
+        createFireBombExplosion(x, y);
+        
+        // Multi-colored fireworks shell: 36 particles launched in a symmetrical radial starburst pattern
+        const particleCount = 36;
+        const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0055', '#00ff00', '#ffffff', '#ff9900'];
+        
+        for (let i = 0; i < particleCount; i++) {
+          const angle = (i / particleCount) * Math.PI * 2;
+          const speed = 2.5 + Math.random() * 3.5;
+          const color = colors[i % colors.length];
+          
+          const p = new Particle(x, y, color, 'sparkle');
+          p.vx = Math.cos(angle) * speed;
+          p.vy = Math.sin(angle) * speed;
+          p.decay = 0.012 + Math.random() * 0.008;
+          particles.push(p);
+        }
+      }
+
+      function createSuperFireworksExplosion(x, y) {
+        // Core firebomb explosion with an extra purple ring
+        createFireBombExplosion(x, y);
+        particles.push(new Particle(x, y, '#9d00ff', 'ring'));
+        
+        // Symmetrical radial fireworks: 50 multi-colored sparks at higher speed dispersion!
+        const particleCount = 50;
+        const colors = ['#ff00ff', '#00ffff', '#ffff00', '#ff0055', '#00ff00', '#ffffff', '#ff9900'];
+        for (let i = 0; i < particleCount; i++) {
+          const angle = (i / particleCount) * Math.PI * 2;
+          const speed = 3.5 + Math.random() * 5.0; // Higher speed dispersion for wider coverage!
+          const color = colors[i % colors.length];
+          
+          const p = new Particle(x, y, color, 'sparkle');
+          p.vx = Math.cos(angle) * speed;
+          p.vy = Math.sin(angle) * speed;
+          p.decay = 0.010 + Math.random() * 0.006; // Longer tails
+          particles.push(p);
+        }
+        
+        // Extra purple sparklers
+        for (let i = 0; i < 15; i++) {
+          particles.push(new Particle(x, y, '#9d00ff', 'sparkle'));
+        }
+        
+        // Extra purple fire smoke clouds
+        for (let i = 0; i < 12; i++) {
+          particles.push(new Particle(x, y, 'rgba(157, 0, 255, 0.45)', 'fire-smoke'));
+        }
+      }
+      function createGenkidamaExplosion(x, y) {
+        screenShake = 55;
+        // Massive expanding cyan blast
+        particles.push(new Particle(x, y, '#ffffff', 'ring'));
+        particles.push(new Particle(x, y, '#00ffff', 'ring'));
+        particles.push(new Particle(x, y, '#00bfff', 'ring'));
+        
+        for (let i = 0; i < 60; i++) {
+          const px = x + (Math.random() - 0.5) * 120;
+          const py = y + (Math.random() - 0.5) * 120;
+          particles.push(new Particle(px, py, 'rgba(0, 238, 255, 0.85)', 'fire-smoke'));
+          particles.push(new Particle(px, py, 'rgba(0, 162, 255, 0.75)', 'fire-smoke'));
+        }
+        
+        // Massive electric shockwaves
+        for (let i = 0; i < 50; i++) {
+          const angle = (i / 50) * Math.PI * 2;
+          const speed = 4.0 + Math.random() * 6.0;
+          const p = new Particle(x, y, '#00ffff', 'sparkle');
+          p.vx = Math.cos(angle) * speed;
+          p.vy = Math.sin(angle) * speed;
+          p.decay = 0.005 + Math.random() * 0.005;
+          particles.push(p);
+        }
+      }
+
+      function createAtomicBombExplosion(x, y) {
+        // Heavy Screen Shake
+        screenShake = 45;
+        
+        // Massive expanding thermal shockwave rings
+        particles.push(new Particle(x, y, '#ffffff', 'ring'));
+        particles.push(new Particle(x, y, '#ff7700', 'ring'));
+        particles.push(new Particle(x, y, '#00ffff', 'ring'));
+        
+        // Pillar of rising fire/smoke (Mushroom stem)
+        for (let h = 0; h < 25; h++) {
+          const py = y - h * 5;
+          const px = x + (Math.random() - 0.5) * 12;
+          setTimeout(() => {
+            particles.push(new Particle(px, py, 'rgba(255, 68, 0, 0.75)', 'fire-smoke'));
+            if (Math.random() < 0.3) {
+              particles.push(new Particle(px, py, 'rgba(255, 200, 0, 0.65)', 'fire-smoke'));
+            }
+          }, h * 8);
+        }
+        
+        // Mushroom Cap: massive dome of expanding fire-smoke at the top (around y - 110)
+        setTimeout(() => {
+          const capY = y - 110;
+          
+          // Outer shockwave rings at the cap
+          particles.push(new Particle(x, capY, '#ffffff', 'ring'));
+          particles.push(new Particle(x, capY, '#ff3700', 'ring'));
+          
+          for (let i = 0; i < 45; i++) {
+            const px = x + (Math.random() - 0.5) * 80;
+            const py = capY + (Math.random() - 0.5) * 45;
+            particles.push(new Particle(px, py, 'rgba(255, 40, 0, 0.85)', 'fire-smoke'));
+            particles.push(new Particle(px, py, 'rgba(255, 160, 0, 0.75)', 'fire-smoke'));
+            particles.push(new Particle(px, py, 'rgba(255, 235, 59, 0.65)', 'fire-smoke'));
+            particles.push(new Particle(px, py, 'rgba(255, 255, 255, 0.55)', 'fire-smoke'));
+          }
+          
+          // Symmetrical radial starburst of sparks flying outwards from the mushroom cap
+          const particleCount = 40;
+          for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Math.PI * 2;
+            const speed = 3.0 + Math.random() * 4.0;
+            const colors = ['#ff3700', '#ffff00', '#ffffff', '#00ffff', '#ff00ff'];
+            const color = colors[i % colors.length];
+            
+            const p = new Particle(x, capY, color, 'sparkle');
+            p.vx = Math.cos(angle) * speed;
+            p.vy = Math.sin(angle) * speed;
+            p.decay = 0.008 + Math.random() * 0.006;
+            particles.push(p);
+          }
+        }, 180);
+      }
+
+      function createDamageText(x, y, text, isSuper = false) {
+        damageTexts.push(new DamageText(x, y, text, isSuper));
+      }
+
+      function appendSystemMsg(msg) {
+        console.log("[System]:", msg);
+      }
+
+      function joinPlayer(username, nickname, avatarUrl, team) {
+        const existsT1 = playersTeam1.some(p => p.username === username);
+        const existsT2 = playersTeam2.some(p => p.username === username);
+        if (existsT1 || existsT2) return;
+
+        const newPlayer = new Player(username, nickname, avatarUrl, team);
+        if (team === 1) {
+          playersTeam1.push(newPlayer);
+        } else {
+          playersTeam2.push(newPlayer);
+        }
+
+        // Send updates to opener dashboard if possible
+        sendDashboardState();
+      }
+
+      function sendDashboardState() {
+        if (window.opener && !window.opener.closed) {
+          const list1 = playersTeam1.map(p => ({ username: p.username, nickname: p.nickname, avatarUrl: p.avatarUrl, hp: p.hp, isDead: p.isDead }));
+          const list2 = playersTeam2.map(p => ({ username: p.username, nickname: p.nickname, avatarUrl: p.avatarUrl, hp: p.hp, isDead: p.isDead }));
+          window.opener.postMessage({
+            type: 'game-state',
+            team1: list1,
+            team2: list2
+          }, '*');
+        }
+      }
+
+      // Render loop
+      function updateGame() {
+        // Handle array cleanup
+        playersTeam1 = playersTeam1.filter(p => !p.isDead || p.fadeAlpha > 0);
+        playersTeam2 = playersTeam2.filter(p => !p.isDead || p.fadeAlpha > 0);
+
+        ctx.save();
+        if (screenShake > 0) {
+          const shakeX = (Math.random() - 0.5) * screenShake;
+          const shakeY = (Math.random() - 0.5) * screenShake;
+          ctx.translate(shakeX, shakeY);
+          screenShake *= 0.9;
+          if (screenShake < 0.5) screenShake = 0;
+        }
+
+        if (bgImage) {
+          ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+          // Soft dark mask overlay for readability
+          ctx.fillStyle = "rgba(8, 9, 12, 0.45)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        } else {
+          ctx.fillStyle = "#0f1015";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Draw territories overlays
+        ctx.fillStyle = "rgba(0, 242, 254, 0.02)";
+        ctx.fillRect(0, 0, canvas.width / 2, canvas.height);
+        ctx.fillStyle = "rgba(254, 9, 121, 0.02)";
+        ctx.fillRect(canvas.width / 2, 0, canvas.width / 2, canvas.height);
+
+        // Glowing Neon Center Barrier
+        const centerX = canvas.width / 2;
+        
+        ctx.save();
+        // Thick semi-transparent energy field background
+        ctx.fillStyle = "rgba(138, 63, 252, 0.08)";
+        ctx.fillRect(centerX - 8, 0, 16, canvas.height);
+        
+        // Neon Glow Laser Beam
+        const grad = ctx.createLinearGradient(centerX, 0, centerX, canvas.height);
+        grad.addColorStop(0, '#00f2fe'); // Team 1 Cyan
+        grad.addColorStop(0.5, '#8a3ffc'); // Transition Purple
+        grad.addColorStop(1, '#fe0979'); // Team 2 Pink
+        
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(138, 63, 252, 0.75)';
+        ctx.strokeStyle = grad;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, canvas.height);
+        ctx.stroke();
+        
+        ctx.shadowBlur = 0; // Reset shadow
+        
+        // Moving Core Energy Pulse
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([15, 25]);
+        ctx.lineDashOffset = -Date.now() / 25; // Animated slide downwards
+        ctx.beginPath();
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, canvas.height);
+        ctx.stroke();
+        
+        ctx.setLineDash([]); // Reset
+        ctx.restore();
+
+        // Update players Team 1
+        playersTeam1.forEach(p => {
+          p.draw();
+          const isSuperSpeed = Date.now() < p.superSpeedTimer;
+          const currentCooldown = isSuperSpeed ? 150 : p.shootCooldown;
+          if (gameState === STATE_PLAYING && !p.isDead && Date.now() - p.lastShot > currentCooldown) {
+            const aliveTargets = playersTeam2.filter(t => !t.isDead);
+            if (aliveTargets.length > 0) {
+              const target = aliveTargets[Math.floor(Math.random() * aliveTargets.length)];
+              const isSuper = Date.now() < p.superShotTimer;
+              projectiles.push(new Projectile(p.x, p.y, target, 1, isSuper ? 'fire' : 'normal', 0, p));
+              p.lastShot = Date.now();
+            }
+          }
+        });
+
+        // Update players Team 2
+        playersTeam2.forEach(p => {
+          p.draw();
+          const isSuperSpeed = Date.now() < p.superSpeedTimer;
+          const currentCooldown = isSuperSpeed ? 150 : p.shootCooldown;
+          if (gameState === STATE_PLAYING && !p.isDead && Date.now() - p.lastShot > currentCooldown) {
+            const aliveTargets = playersTeam1.filter(t => !t.isDead);
+            if (aliveTargets.length > 0) {
+              const target = aliveTargets[Math.floor(Math.random() * aliveTargets.length)];
+              const isSuper = Date.now() < p.superShotTimer;
+              projectiles.push(new Projectile(p.x, p.y, target, 2, isSuper ? 'fire' : 'normal', 0, p));
+              p.lastShot = Date.now();
+            }
+          }
+        });
+
+        // Projectiles
+        projectiles = projectiles.filter(p => {
+          p.update();
+          if (!p.isHit) {
+            p.draw();
+          } else {
+            if (p.domElement) p.domElement.remove();
+          }
+          return !p.isHit;
+        });
+
+        // Particles
+        particles = particles.filter(p => {
+          p.update();
+          if (p.alpha > 0) p.draw();
+          return p.alpha > 0;
+        });
+
+        // Damage text
+        damageTexts = damageTexts.filter(d => {
+          d.update();
+          if (d.alpha > 0) d.draw();
+          return d.alpha > 0;
+        });
+
+        // HUD Team Labels
+        ctx.font = '900 24px Outfit, sans-serif';
+        ctx.lineWidth = 4;
+        
+        ctx.textAlign = 'left';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.strokeText(team1Name, 20, 35);
+        ctx.fillStyle = '#00f2fe';
+        ctx.fillText(team1Name, 20, 35);
+        
+        ctx.textAlign = 'right';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.strokeText(team2Name, canvas.width - 20, 35);
+        ctx.fillStyle = '#fe0979';
+        ctx.fillText(team2Name, canvas.width - 20, 35);
+        
+        ctx.textAlign = 'left';
+
+        // Timer and Game State Logic
+        if (gameState === STATE_PLAYING) {
+          const timeLeft = Math.max(0, matchEndTime - Date.now());
+          
+          if (Date.now() - lastLeaderboardEmit > 1000) {
+            const allPlayers = [...playersTeam1, ...playersTeam2];
+            allPlayers.sort((a, b) => b.damageDealt - a.damageDealt);
+            const top10 = allPlayers.slice(0, 10).map(p => ({
+               username: p.username,
+               nickname: p.nickname,
+               avatarUrl: p.avatarUrl,
+               damageDealt: p.damageDealt,
+               team: p.team
+            }));
+            socket.emit("update-leaderboard", { players: top10, timeLeft, killsTeam1, killsTeam2 });
+            lastLeaderboardEmit = Date.now();
+          }
+          
+          if (timeLeft === 0) {
+            gameState = STATE_GAMEOVER;
+            projectiles.forEach(p => { if (p.domElement) p.domElement.remove(); });
+            projectiles = []; // Clear projectiles
+            
+            // Draw Podium after a small delay to let particles clear
+            setTimeout(drawPodium, 1000);
+          }
+          
+          // Draw Timer HUD
+          const mins = Math.floor(timeLeft / 60000);
+          const secs = Math.floor((timeLeft % 60000) / 1000);
+          const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+          
+          ctx.font = 'bold 24px Outfit, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = timeLeft <= 30000 ? '#ef4444' : '#fff'; // Red if <= 30s
+          ctx.fillText(timeStr, canvas.width / 2, 35);
+          ctx.textAlign = 'left';
+        } else if (gameState === STATE_GAMEOVER && podiumData) {
+          renderPodiumHUD();
+        }
+
+        ctx.restore(); // Restore screen shake
+        gameLoopId = requestAnimationFrame(updateGame);
+      }
+
+      function drawPodium() {
+        const allPlayers = [...playersTeam1, ...playersTeam2];
+        allPlayers.sort((a, b) => b.damageDealt - a.damageDealt);
+        podiumData = allPlayers.slice(0, 3);
+        
+        // Launch celebration fireworks loop
+        const fwInterval = setInterval(() => {
+          if (gameState !== STATE_GAMEOVER) {
+            clearInterval(fwInterval);
+            return;
+          }
+          createSuperFireworksExplosion(
+            canvas.width / 2 + (Math.random() - 0.5) * 400,
+            canvas.height / 2 + (Math.random() - 0.5) * 200
+          );
+        }, 800);
+      }
+      
+      function renderPodiumHUD() {
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.font = 'bold 36px Outfit, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText('🏆 TOP DAÑO DE BATALLA 🏆', canvas.width / 2, 60);
+        
+        const positions = [
+          { x: canvas.width / 2, y: canvas.height / 2 - 20, rank: '1ro 🥇', color: '#ffd700' },
+          { x: canvas.width / 2 - 150, y: canvas.height / 2 + 20, rank: '2do 🥈', color: '#c0c0c0' },
+          { x: canvas.width / 2 + 150, y: canvas.height / 2 + 40, rank: '3ro 🥉', color: '#cd7f32' }
+        ];
+        
+        podiumData.forEach((p, i) => {
+          const pos = positions[i];
+          if (!pos) return;
+          
+          ctx.save();
+          // Draw Podium Base
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+          ctx.beginPath();
+          ctx.ellipse(pos.x, pos.y + 60, 50, 15, 0, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Draw Avatar
+          if (p.img && p.img !== "failed") {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 40, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(p.img, pos.x - 40, pos.y - 40, 80, 80);
+            ctx.restore();
+            
+            ctx.strokeStyle = pos.color;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 40, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          
+          ctx.font = 'bold 18px Inter, sans-serif';
+          ctx.fillStyle = pos.color;
+          ctx.fillText(pos.rank, pos.x, pos.y - 55);
+          
+          ctx.fillStyle = '#fff';
+          ctx.fillText(p.nickname, pos.x, pos.y + 55);
+          
+          ctx.font = 'bold 14px Inter, sans-serif';
+          ctx.fillStyle = '#ff5e00';
+          ctx.fillText(`${Math.round(p.damageDealt)} Daño`, pos.x, pos.y + 75);
+          ctx.restore();
+        });
+      }
+
+      // Trigger DBZ Power based on coins
+      function triggerGiftPower(player, coins) {
+        const username = player.username;
+        const targets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+        
+        let target = targets.length > 0 ? targets[Math.floor(Math.random() * targets.length)] : null;
+        const isDummy = !target;
+        if (isDummy) {
+          const dummyX = (player.team === 1) ? (canvas.width - 50) : 50;
+          const dummyY = player.y + (Math.random() - 0.5) * 80;
+          target = {
+            x: dummyX,
+            y: dummyY,
+            isDead: false,
+            fadeAlpha: 1.0,
+            team: player.team === 1 ? 2 : 1,
+            randomSeed: Math.random() * 100,
+            takeDamage: (amount) => {
+              createExplosion(dummyX, dummyY, player.team === 1 ? '#fe0979' : '#00f2fe', 8);
+              createDamageText(dummyX, dummyY - 12, `-${amount}`);
+              return amount;
+            }
+          };
+        }
+
+        // 1C - LLUVIA DE COHETES
+        if (coins === 1) {
+          createDamageText(player.x, player.y - 25, "¡LLUVIA DE COHETES! 🚀", true);
+          for (let i = 0; i < 10; i++) {
+            setTimeout(() => {
+              if (player.isDead) return;
+              const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+              let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+              if (!t) t = target;
+              projectiles.push(new Projectile(player.x, player.y, t, player.team, 'bolitak', 0, player, 1));
+            }, i * 70);
+          }
+        }
+        // 5C - FUEGO DE FURIA
+        else if (coins >= 5 && coins < 10) {
+          createDamageText(player.x, player.y - 25, "¡FUEGO DE FURIA! 🔥", true);
+          for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+              if (player.isDead) return;
+              const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+              let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+              if (!t) t = target;
+              projectiles.push(new Projectile(player.x, player.y, t, player.team, 'fire', 0, player, 5));
+            }, i * 150);
+          }
+        }
+        // 10C - EMPUJON NORMAL
+        else if (coins >= 10 && coins < 20) {
+          projectiles.push(new Projectile(player.x, player.y, target, player.team, 'push', 45, player, 10));
+          createDamageText(player.x, player.y - 25, "¡EMPUJÓN NORMAL! 💨", true);
+        }
+        // 20C - EMPUJON TRIPLE
+        else if (coins >= 20 && coins < 30) {
+          createDamageText(player.x, player.y - 25, "¡EMPUJÓN TRIPLE! 💨💨💨", true);
+          for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+              if (player.isDead) return;
+              const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+              let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+              if (!t) t = target;
+              projectiles.push(new Projectile(player.x, player.y, t, player.team, 'push', 25, player, 20));
+            }, i * 180);
+          }
+        }
+        // 30C - RAYOS ELECTROCUTADORES
+        else if (coins >= 30 && coins < 100) {
+          projectiles.push(new Projectile(player.x, player.y, target, player.team, 'lightning', 0, player, 30));
+          createDamageText(player.x, player.y - 25, "¡TORMENTA ELÉCTRICA! ⚡", true);
+        }
+        // 100C - TELEPORTACIÓN ELÉCTRICA (Teletransporte + Triple Rayo)
+        else if (coins >= 100 && coins < 199) {
+          createExplosion(player.x, player.y, '#00ffcc', 20);
+          player.x = (player.team === 1) 
+            ? (40 + Math.random() * (canvas.width / 2 - 85)) 
+            : (canvas.width / 2 + 45 + Math.random() * (canvas.width / 2 - 85));
+          player.y = 40 + Math.random() * (canvas.height - 80);
+          createExplosion(player.x, player.y, '#00ffcc', 20);
+          createDamageText(player.x, player.y - 25, "¡TELEPORTACIÓN ELÉCTRICA! 🌀⚡", true);
+          
+          for (let i = 0; i < 3; i++) {
+            setTimeout(() => {
+              if (player.isDead) return;
+              const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+              let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+              if (!t) t = target;
+              projectiles.push(new Projectile(player.x, player.y, t, player.team, 'lightning', 0, player, 100));
+            }, i * 250);
+          }
+        }
+        // 199C - KIESAN (Destructo Disc)
+        else if (coins >= 199 && coins < 299) {
+          projectiles.push(new Projectile(player.x, player.y, target, player.team, 'kiesan', 0, player, 199));
+          createDamageText(player.x, player.y - 25, "¡KIESAN! 📀", true);
+        }
+        // 299C - MAKANKOSAPO MAS EMPUJON AL 5
+        else if (coins >= 299 && coins < 500) {
+          projectiles.push(new Projectile(player.x, player.y, target, player.team, 'makankosapo', 120, player, 299));
+          createDamageText(player.x, player.y - 25, "¡MAKANKOSAPO! 🌀⚡", true);
+        }
+        // 500C - KAMEHAMEHA COMBINADO (Teletransporte en ambos ejes + Kamehameha + Ráfaga Combo de Todos los Poderes Menores)
+        else if (coins >= 500 && coins < 1000) {
+          createExplosion(player.x, player.y, '#00ffcc', 20);
+          player.x = (player.team === 1) 
+            ? (40 + Math.random() * (canvas.width / 2 - 85)) 
+            : (canvas.width / 2 + 45 + Math.random() * (canvas.width / 2 - 85));
+          player.y = 40 + Math.random() * (canvas.height - 80);
+          createExplosion(player.x, player.y, '#00ffcc', 20);
+          
+          projectiles.push(new Projectile(player.x, player.y, target, player.team, 'kamehameha', 0, player, 500));
+          createDamageText(player.x, player.y - 25, "¡KAMEHAMEHA COMBINADO! 🌊🌀⚡", true);
+          
+          // 1. Rocket (1300ms)
+          setTimeout(() => {
+            if (player.isDead) return;
+            const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+            let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+            if (!t) t = target;
+            projectiles.push(new Projectile(player.x, player.y, t, player.team, 'bolitak', 0, player, 1));
+          }, 1300);
+          
+          // 2. Fireball (1500ms)
+          setTimeout(() => {
+            if (player.isDead) return;
+            const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+            let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+            if (!t) t = target;
+            projectiles.push(new Projectile(player.x, player.y, t, player.team, 'fire', 0, player, 5));
+          }, 1500);
+          
+          // 3. Wind crescent (1700ms)
+          setTimeout(() => {
+            if (player.isDead) return;
+            const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+            let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+            if (!t) t = target;
+            projectiles.push(new Projectile(player.x, player.y, t, player.team, 'push', 45, player, 10));
+          }, 1700);
+          
+          // 4. Lightning bolt (1900ms)
+          setTimeout(() => {
+            if (player.isDead) return;
+            const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+            let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+            if (!t) t = target;
+            projectiles.push(new Projectile(player.x, player.y, t, player.team, 'lightning', 0, player, 30));
+          }, 1900);
+          
+          // 5. Kiesan Disc (2100ms)
+          setTimeout(() => {
+            if (player.isDead) return;
+            const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+            let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+            if (!t) t = target;
+            projectiles.push(new Projectile(player.x, player.y, t, player.team, 'kiesan', 0, player, 199));
+          }, 2100);
+          
+          // 6. Makankosapo (2300ms)
+          setTimeout(() => {
+            if (player.isDead) return;
+            const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+            let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+            if (!t) t = target;
+            projectiles.push(new Projectile(player.x, player.y, t, player.team, 'makankosapo', 120, player, 299));
+          }, 2300);
+        }
+        // 1000C - GENKIDAMA MAS KAMEHAMEHA Y TODOS LOS PODERES
+        else if (coins >= 1000) {
+          projectiles.push(new Projectile(player.x, player.y, target, player.team, 'genkidama', 0, player, 1000));
+          createDamageText(player.x, player.y - 25, "¡GENKIDAMA! 🔮✨", true);
+          
+          const chainPowers = ['bolitak', 'fire', 'push', 'lightning', 'kiesan', 'makankosapo', 'kamehameha'];
+          chainPowers.forEach((pwr, idx) => {
+            setTimeout(() => {
+              if (player.isDead) return;
+              const liveTargets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
+              let t = liveTargets.length > 0 ? liveTargets[Math.floor(Math.random() * liveTargets.length)] : null;
+              if (!t) t = target;
+              
+              // Map power to base coin cost for sounds
+              let pCoins = 1;
+              if (pwr === 'fire') pCoins = 5;
+              else if (pwr === 'push') pCoins = 10;
+              else if (pwr === 'lightning') pCoins = 30;
+              else if (pwr === 'kiesan') pCoins = 199;
+              else if (pwr === 'makankosapo') pCoins = 299;
+              else if (pwr === 'kamehameha') pCoins = 500;
+              
+              projectiles.push(new Projectile(player.x, player.y, t, player.team, pwr, pwr === 'push' || pwr === 'makankosapo' ? 45 : 0, player, pCoins));
+            }, 1200 + (idx * 400));
+          });
+        }
+      }
+
+      // Gift Event Handler
+      function handleGiftEvent(event) {
+        const username = event.uniqueId;
+        const coins = (event.diamondCount || 1) * (event.repeatCount || 1);
+        
+        let player = playersTeam1.find(p => p.username === username) || 
+                     playersTeam2.find(p => p.username === username);
+                     
+        if (player) {
+          // If dead, respawn them!
+          if (player.isDead) {
+            player.isDead = false;
+            player.fadeAlpha = 1.0;
+            player.hp = player.maxHp;
+            player.calculateSpawn();
+            appendSystemMsg(`¡Guerrero @${username} ha resucitado con un Regalo! 💫`);
+          }
+          
+          player.coinsSent += coins;
+          player.radius = 12 + Math.min(28, player.coinsSent * 1.2);
+          
+          const hpBonus = coins * 10;
+          player.maxHp += hpBonus;
+          player.hp = Math.min(player.maxHp, player.hp + hpBonus);
+ 
+          createExplosion(player.x, player.y, '#ffd700', 15);
+          createDamageText(player.x, player.y - 12, `+${hpBonus} MAX HP!`);
+          appendSystemMsg(`¡@${username} envió ${event.giftName}! Vida: ${player.hp}/${player.maxHp}`);
+          
+          triggerGiftPower(player, coins);
+        } else {
+          // Auto-join to smaller team
+          const team = playersTeam1.length <= playersTeam2.length ? 1 : 2;
+          joinPlayer(username, event.nickname, event.profilePictureUrl, team);
+          
+          const list = team === 1 ? playersTeam1 : playersTeam2;
+          const newPlayer = list.find(p => p.username === username);
+          if (newPlayer) {
+            newPlayer.coinsSent = coins;
+            newPlayer.radius = 12 + Math.min(28, coins * 1.2);
+            const hpBonus = coins * 10;
+            newPlayer.maxHp += hpBonus;
+            newPlayer.hp = newPlayer.maxHp;
+ 
+            createExplosion(newPlayer.x, newPlayer.y, '#ffd700', 15);
+            createDamageText(newPlayer.x, newPlayer.y - 12, `¡JEFE +${hpBonus} HP!`);
+            
+            triggerGiftPower(newPlayer, coins);
+          }
+        }
+        sendDashboardState();
+      }
+
+      // Like / Tap Event Handler (2 HP heal for every 10 taps)
+      function handleLikeEvent(event) {
+        const username = event.uniqueId;
+        const count = event.likeCount || 1;
+        
+        let player = playersTeam1.find(p => p.username === username) || 
+                     playersTeam2.find(p => p.username === username);
+                     
+        if (player) {
+          if (player.isDead) return;
+          
+          if (!player.likesAccumulated) player.likesAccumulated = 0;
+          player.likesAccumulated += count;
+          
+          const setsOf10 = Math.floor(player.likesAccumulated / 10);
+          if (setsOf10 > 0) {
+            const healAmount = setsOf10 * 2;
+            const originalHp = player.hp;
+            player.hp = Math.min(player.maxHp, player.hp + healAmount);
+            
+            const actualHealed = player.hp - originalHp;
+            if (actualHealed > 0) {
+              createExplosion(player.x, player.y, '#10b981', 6); // Green sparkles
+              createDamageText(player.x, player.y - 12, `+${actualHealed.toFixed(1)} HP 💚`, false);
+            }
+            
+            player.likesAccumulated %= 10;
+            sendDashboardState();
+          }
+        }
+      }
+
+      // Helper to process user comment inputs (Join & Team Switch)
+      function handleCommentEvent(event) {
+        const comment = event.comment.trim().toLowerCase();
+        const username = event.uniqueId;
+        
+        let desiredTeam = 0;
+        if (comment === "1" || comment === "a") {
+          desiredTeam = 1;
+        } else if (comment === "2" || comment === "b") {
+          desiredTeam = 2;
+        }
+        
+        if (desiredTeam === 0) return;
+        
+        let p1 = playersTeam1.find(p => p.username === username);
+        let p2 = playersTeam2.find(p => p.username === username);
+        
+        if (p1) {
+          if (desiredTeam === 2) {
+            playersTeam1 = playersTeam1.filter(p => p.username !== username);
+            p1.team = 2;
+            p1.calculateSpawn();
+            if (p1.isDead) {
+              p1.isDead = false;
+              p1.fadeAlpha = 1.0;
+              p1.hp = p1.maxHp;
+            }
+            playersTeam2.push(p1);
+            appendSystemMsg(`¡@${username} se cambió al Equipo 2! ➡️`);
+            sendDashboardState();
+          }
+        } else if (p2) {
+          if (desiredTeam === 1) {
+            playersTeam2 = playersTeam2.filter(p => p.username !== username);
+            p2.team = 1;
+            p2.calculateSpawn();
+            if (p2.isDead) {
+              p2.isDead = false;
+              p2.fadeAlpha = 1.0;
+              p2.hp = p2.maxHp;
+            }
+            playersTeam1.push(p2);
+            appendSystemMsg(`¡@${username} se cambió al Equipo 1! ⬅️`);
+            sendDashboardState();
+          }
+        } else {
+          joinPlayer(username, event.nickname, event.profilePictureUrl, desiredTeam);
+        }
+      }
+
+      // Socket Live Event Listener (only when active)
+      socket.on("live-event", (event) => {
+        if (!isGameActive) return; // IGNORE events if not started!
+
+        if (event.type === "chat") {
+          handleCommentEvent(event);
+        } else if (event.type === "gift") {
+          handleGiftEvent(event);
+        } else if (event.type === "like") {
+          handleLikeEvent(event);
+        }
+      });
+
+      // Start / Pause Controls
+      startBtn.addEventListener("click", () => {
+        SoundEngine.init();
+        isGameActive = !isGameActive;
+        if (isGameActive) {
+          startBtn.className = "btn btn-danger";
+          startBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+          pauseScreen.classList.add("hidden");
+          
+          if (gameState === STATE_WAITING || gameState === STATE_GAMEOVER) {
+            const minutes = parseFloat(document.getElementById('time-limit').value) || 5;
+            matchEndTime = Date.now() + (minutes * 60000);
+            gameState = STATE_PLAYING;
+            podiumData = null;
+            document.getElementById('end-match-btn').style.display = 'inline-flex';
+            
+            // Reset players' damage just in case
+            [...playersTeam1, ...playersTeam2].forEach(p => p.damageDealt = 0);
+          }
+        } else {
+          startBtn.className = "btn btn-success";
+          startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+          pauseScreen.classList.remove("hidden");
+        }
+      });
+      
+      document.getElementById('end-match-btn').addEventListener("click", () => {
+        if (gameState === STATE_PLAYING) {
+           matchEndTime = Date.now(); // Force end immediately
+           document.getElementById('end-match-btn').style.display = 'none';
+        }
+      });
+
+      // Reset Match
+      resetBtn.addEventListener("click", () => {
+        playersTeam1 = [];
+        playersTeam2 = [];
+        projectiles.forEach(p => { if (p.domElement) p.domElement.remove(); });
+        projectiles = [];
+        particles = [];
+        damageTexts = [];
+        killsTeam1 = 0;
+        killsTeam2 = 0;
+        sendDashboardState();
+      });
+
+      // Open Podium Window
+      document.getElementById('open-podium-btn').addEventListener("click", () => {
+        window.open('podium.html', 'TikTokBattlePodium', 'width=420,height=650,resizable=yes');
+      });
+
+      // Canvas resizing listeners
+      function updateCanvasSize() {
+        const w = parseInt(canvasWInput.value) || 420;
+        const h = parseInt(canvasHInput.value) || 650;
+        canvas.width = w;
+        canvas.height = h;
+
+        // Re-spawn existing players relatively if necessary, or just keep coordinates
+        playersTeam1.forEach(p => p.calculateSpawn());
+        playersTeam2.forEach(p => p.calculateSpawn());
+      }
+
+      canvasWInput.addEventListener("change", updateCanvasSize);
+      canvasHInput.addEventListener("change", updateCanvasSize);
+
+
+
+      // Sim Join Team triggers
+      simT1Btn.addEventListener("click", () => {
+        let name = simUserInput.value.trim();
+        if (!name) name = "GuerreroT1_" + Math.floor(Math.random() * 900 + 100);
+        joinPlayer(name.toLowerCase(), name, "", 1);
+        simUserInput.value = "";
+      });
+
+      simT2Btn.addEventListener("click", () => {
+        let name = simUserInput.value.trim();
+        if (!name) name = "GuerreroT2_" + Math.floor(Math.random() * 900 + 100);
+        joinPlayer(name.toLowerCase(), name, "", 2);
+        simUserInput.value = "";
+      });
+
+      // Sim Gift button click handler
+      simGiftBtn.addEventListener("click", () => {
+        let name = simUserInput.value.trim();
+        if (!name) {
+          alert("Por favor escribe el nombre del usuario simulado para enviarle un regalo.");
+          return;
+        }
+        const coins = parseInt(simCoinsInput.value) || 5;
+        
+        // Simular evento de regalo de TikTok Live
+        handleGiftEvent({
+          type: "gift",
+          uniqueId: name.toLowerCase(),
+          nickname: name,
+          profilePictureUrl: "",
+          giftName: `RegaloSimulado_${coins}Monedas`,
+          diamondCount: coins,
+          repeatCount: 1
+        });
+        
+        simUserInput.value = "";
+      });
+
+      // Hide / Show controls overlay
+      hideCtrlsBtn.addEventListener("click", () => {
+        controlsBar.classList.add("hidden");
+        hintText.style.opacity = "0.7";
+        setTimeout(() => { hintText.style.opacity = "0"; }, 4000);
+      });
+
+      function showControls() {
+        window.open('controls.html', 'TikTokBattleControls', 'width=420,height=650,resizable=yes');
+      }
+
+      document.addEventListener("dblclick", showControls);
+      document.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === 'c') {
+          showControls();
+        }
+      });
+
+      window.addEventListener("message", (e) => {
+        if (e.data === 'sync') {
+          sendDashboardState();
+        }
+      });
+      
+      // EXPORT API for Remote Controls
+      window.BattleAPI = {
+        getState: () => ({ isGameActive, gameState: gameState === STATE_PLAYING ? 'PLAYING' : 'WAITING' }),
+        togglePlay: (time) => {
+          document.getElementById('time-limit').value = time;
+          startBtn.click();
+        },
+        addTime: (seconds) => {
+          if (gameState === STATE_PLAYING) {
+            matchEndTime += seconds * 1000;
+            if (matchEndTime < Date.now()) matchEndTime = Date.now();
+          }
+        },
+        setTime: (seconds) => {
+          if (gameState === STATE_PLAYING) {
+            matchEndTime = Date.now() + (seconds * 1000);
+          }
+        },
+        resetGame: () => resetBtn.click(),
+        endMatch: () => document.getElementById('end-match-btn').click(),
+        openPodium: () => document.getElementById('open-podium-btn').click(),
+        resizeCanvas: (w, h) => {
+          canvasWInput.value = w;
+          canvasHInput.value = h;
+          updateCanvasSize();
+        },
+        setBackgroundImage: (dataUrl) => {
+          const img = new Image();
+          img.src = dataUrl;
+          img.onload = () => {
+            bgImage = img;
+          };
+        },
+        simulateJoin: (user, team) => {
+          simUserInput.value = user;
+          if (team === 1) simT1Btn.click(); else simT2Btn.click();
+        },
+        simulateGift: (user, coins) => {
+          simUserInput.value = user;
+          simCoinsInput.value = coins;
+          simGiftBtn.click();
+        },
+        updateTeamNames: (t1, t2) => {
+          team1Name = t1 || "EQUIPO 1";
+          team2Name = t2 || "EQUIPO 2";
+        }
+      };
+
+      // Start engine loop
+      updateGame();
+    });
+  </script>
+</body>
+</html>
