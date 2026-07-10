@@ -51,8 +51,8 @@
           <button class="tab-btn active" data-target="battle-game-tab">
             <i class="fas fa-gamepad game-icon-color"></i> Batalla Real 🥊
           </button>
-          <button class="tab-btn" data-target="next-game-tab">
-            <i class="fas fa-rocket text-purple"></i> Próximo Juego 🎮
+          <button class="tab-btn" data-target="royale3d-game-tab">
+            <i class="fas fa-cube text-purple"></i> 3D Battle Royale ⚔️
           </button>
         </div>
 
@@ -88,19 +88,32 @@
           </section>
         </div>
 
-        <!-- Contenido de Pestaña: Próximo Juego Placeholder -->
-        <div id="next-game-tab" class="tab-content hidden">
-          <section class="battle-panel glass-panel placeholder-game-panel">
+        <!-- Contenido de Pestaña: 3D Battle Royale -->
+        <div id="royale3d-game-tab" class="tab-content hidden">
+          <section class="battle-panel glass-panel launcher-panel">
             <div class="section-header">
-              <h2><i class="fas fa-rocket text-purple"></i> Integración del Próximo Juego</h2>
+              <h2><i class="fas fa-cube text-purple"></i> Lanzador 3D Battle Royale</h2>
             </div>
-            <div class="placeholder-game-body">
-              <div class="placeholder-art">
-                <i class="fas fa-dice-d20 fa-spin text-purple"></i>
+            <div class="launcher-body">
+              <div class="launcher-info-card">
+                <div class="launcher-icon"><i class="fas fa-cubes text-purple"></i></div>
+                <div class="launcher-desc">
+                  <h3>3D Battle Royale (Campal) ⚔️</h3>
+                  <p>Los espectadores se unen escribiendo "go" en el chat. Sus fotos de perfil se pintarán en cubos 3D y lucharán todos contra todos en una arena de Three.js.</p>
+                  <p class="launcher-note">No olvides presionar 'C' o hacer doble clic en el juego para abrir su panel de controles.</p>
+                </div>
               </div>
-              <h3>Próximo Videojuego Interactivo</h3>
-              <p>Esta pestaña servirá para integrar tu siguiente videojuego interactivo para streams (ej. Carrera de Autos, Torre de Regalos, etc.).</p>
-              <p class="sub-text">Recibirá los mismos eventos estándar de TikTok Live emitidos por el conector.</p>
+              <div class="launcher-actions">
+                <button id="launch-royale3d-btn" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #b92ffc, #00f2fe);">
+                  <i class="fas fa-external-link-alt"></i> Lanzar Juego 3D 🚀
+                </button>
+                <button id="open-royale3d-controls-btn" class="btn btn-secondary btn-lg" style="margin-left: 10px;">
+                  <i class="fas fa-cog"></i> Panel de Controles
+                </button>
+                <div id="window-status-3d" class="window-status disconnected">
+                  <span class="status-dot"></span> <span class="status-text">Ventana del Juego Inactiva</span>
+                </div>
+              </div>
             </div>
           </section>
         </div>
@@ -336,7 +349,7 @@
         if (active) {
           windowStatus.className = "window-status connected";
           windowStatus.querySelector(".status-text").textContent = "Ventana del Juego Activa";
-          appendSystemMsg("Ventana de Batalla Real lanzada con éxito. Pulsa 'Iniciar' dentro de la ventana de juego para comenzar.");
+          appendSystemMsg("Ventana de Batalla Real 2D lanzada con éxito.");
         } else {
           windowStatus.className = "window-status disconnected";
           windowStatus.querySelector(".status-text").textContent = "Ventana del Juego Inactiva";
@@ -344,7 +357,47 @@
           t2List.innerHTML = '<div class="empty-list-msg">Sin guerreros</div>';
           team1CountDisp.textContent = "0";
           team2CountDisp.textContent = "0";
-          appendSystemMsg("La ventana del juego ha sido cerrada.");
+          appendSystemMsg("La ventana de Batalla Real 2D ha sido cerrada.");
+        }
+      }
+
+      // ================= 3D BATTLE ROYALE =================
+      let game3dWindow = null;
+      
+      const launch3dBtn = document.getElementById('launch-royale3d-btn');
+      const open3dControlsBtn = document.getElementById('open-royale3d-controls-btn');
+      const windowStatus3d = document.getElementById('window-status-3d');
+      
+      launch3dBtn.addEventListener('click', () => {
+        if (!game3dWindow || game3dWindow.closed) {
+          game3dWindow = window.open('royale3d.html', 'Royale3D', 'width=1280,height=720,resizable=yes');
+          updateWindowStatus3d(true);
+          
+          const checkClosed = setInterval(() => {
+            if (game3dWindow.closed) {
+              clearInterval(checkClosed);
+              game3dWindow = null;
+              updateWindowStatus3d(false);
+            }
+          }, 1000);
+        } else {
+          game3dWindow.focus();
+        }
+      });
+
+      open3dControlsBtn.addEventListener('click', () => {
+        window.open('royale-controls.html', 'RoyaleControls', 'width=350,height=600,resizable=yes');
+      });
+
+      function updateWindowStatus3d(active) {
+        if (active) {
+          windowStatus3d.className = "window-status connected";
+          windowStatus3d.querySelector(".status-text").textContent = "Ventana 3D Activa";
+          appendSystemMsg("Ventana 3D Battle Royale lanzada con éxito.");
+        } else {
+          windowStatus3d.className = "window-status disconnected";
+          windowStatus3d.querySelector(".status-text").textContent = "Ventana 3D Inactiva";
+          appendSystemMsg("La ventana 3D Battle Royale ha sido cerrada.");
         }
       }
 

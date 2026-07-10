@@ -270,9 +270,87 @@
       0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.4)); }
       100% { transform: scale(1.1); filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.8)); }
     }
+    
+    /* Hakai Cinematic Overlay */
+    .hakai-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at center, rgba(82, 0, 137, 0.8) 0%, rgba(0,0,0,1) 100%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .hakai-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .hakai-overlay img.hakai-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0.6;
+      mix-blend-mode: screen;
+    }
+    .hakai-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      animation: hakaiShake 0.1s infinite;
+    }
+    .hakai-content img.hakai-avatar {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      border: 4px solid #b92ffc;
+      box-shadow: 0 0 40px #b92ffc, 0 0 80px #ff00ff;
+      margin-bottom: 20px;
+    }
+    .hakai-content h1 {
+      font-family: var(--font-outfit);
+      font-size: 60px;
+      font-weight: 800;
+      color: #fff;
+      text-shadow: 0 0 20px #b92ffc, 0 0 40px #ff00ff;
+      margin: 0;
+      letter-spacing: 5px;
+    }
+    .hakai-content h2 {
+      font-family: var(--font-inter);
+      font-size: 30px;
+      color: #ff00ff;
+      margin: 10px 0;
+      text-transform: uppercase;
+    }
+    @keyframes hakaiShake {
+      0% { transform: translate(2px, 1px) rotate(0deg); }
+      10% { transform: translate(-1px, -2px) rotate(-1deg); }
+      20% { transform: translate(-3px, 0px) rotate(1deg); }
+      30% { transform: translate(0px, 2px) rotate(0deg); }
+      40% { transform: translate(1px, -1px) rotate(1deg); }
+      50% { transform: translate(-1px, 2px) rotate(-1deg); }
+      60% { transform: translate(-3px, 1px) rotate(0deg); }
+      70% { transform: translate(2px, 1px) rotate(-1deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      90% { transform: translate(2px, 2px) rotate(0deg); }
+      100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
   </style>
 </head>
 <body>
+
+  <!-- Hakai Overlay -->
+  <div id="hakai-screen" class="hakai-overlay">
+    <img src="images/hakai.gif" class="hakai-bg" alt="Hakai Bills" onerror="this.style.display='none'">
+    <div class="hakai-content">
+      <img id="hakai-avatar" src="" class="hakai-avatar">
+      <h2 id="hakai-name">Usuario</h2>
+      <h1>¡HAKAI!</h1>
+    </div>
+  </div>
 
   <!-- Controls Overlay Bar -->
   <div class="controls-overlay" id="controls-bar">
@@ -649,8 +727,8 @@
           this.coins = coins;
           
           this.isSuper = (type === 'fire');
-          this.speed = (type === 'kiesan') ? 9.0 : ((type === 'makankosapo') ? 10.0 : ((type === 'genkidama') ? 2.0 : ((type === 'bolitak') ? 6.5 : (type === 'fire' ? 8.0 : 10.2))));
-          this.radius = (type === 'kiesan') ? 16 : ((type === 'makankosapo') ? 10 : ((type === 'genkidama') ? 68 : ((type === 'bolitak') ? 3 : (type === 'push' ? 8 : (type === 'fire' ? 7 : 4)))));
+          this.speed = (type === 'hakai') ? 1.5 : ((type === 'kiesan') ? 9.0 : ((type === 'makankosapo') ? 10.0 : ((type === 'genkidama') ? 2.0 : ((type === 'bolitak') ? 6.5 : (type === 'fire' ? 8.0 : 10.2)))));
+          this.radius = (type === 'hakai') ? 35 : ((type === 'kiesan') ? 16 : ((type === 'makankosapo') ? 10 : ((type === 'genkidama') ? 68 : ((type === 'bolitak') ? 3 : (type === 'push' ? 8 : (type === 'fire' ? 7 : 4))))));
           this.isHit = false;
           this.duration = (type === 'kamehameha') ? 45 : 0;
           
@@ -741,6 +819,9 @@
             particles.push(new Particle(this.x, this.y, '#ff00ff'));
           } else if (this.type === 'genkidama' && Math.random() < 0.6) {
             particles.push(new Particle(this.x, this.y + (Math.random() - 0.5) * 30, '#00d0ff'));
+          } else if (this.type === 'hakai' && Math.random() < 0.8) {
+            particles.push(new Particle(this.x + (Math.random() - 0.5) * 50, this.y + (Math.random() - 0.5) * 50, '#ff00ff'));
+            particles.push(new Particle(this.x + (Math.random() - 0.5) * 50, this.y + (Math.random() - 0.5) * 50, '#800080'));
           }
 
           const targetBobbingY = this.target.isDead ? 0 : Math.sin(Date.now() / 400 + this.target.randomSeed) * 6;
@@ -855,11 +936,10 @@
                 }
               });
             } else if (this.type === 'genkidama') {
-              dmg = 180;
+              dmg = 500;
               particleColor = '#00d0ff';
-              particleCount = 80;
+              particleCount = 40;
               SoundEngine.playCollision(this.coins);
-              
               createGenkidamaExplosion(this.x, this.y);
               
               // Deal splash damage to ENTIRE enemy team
@@ -869,6 +949,29 @@
                   const splashDmg = enemy.takeDamage(90, this.source);
                   if (splashDmg > 0) {
                     createDamageText(enemy.x, enemy.y - 12, `-${splashDmg} 💥`, true);
+                  }
+                }
+              });
+            } else if (this.type === 'hakai') {
+              dmg = 0; // Handled by splash
+              particleColor = '#ff00ff';
+              particleCount = 0;
+              SoundEngine.playCollision(this.coins);
+              
+              createHakaiExplosion(this.x, this.y);
+              
+              // Hakai explosion effect (screen shake)
+              const cvs = document.getElementById('battle-canvas');
+              cvs.style.transform = "scale(1.15) rotate(3deg)";
+              setTimeout(() => { cvs.style.transform = "scale(1)"; }, 400);
+
+              // Splash damage to ALL enemies
+              const enemyTeam = this.team === 1 ? playersTeam2 : playersTeam1;
+              enemyTeam.forEach(enemy => {
+                if (!enemy.isDead) {
+                  const splashDmg = enemy.takeDamage(5000, this.source);
+                  if (splashDmg > 0) {
+                    createDamageText(enemy.x, enemy.y - 30, `-${splashDmg} HAKAI!`, true);
                   }
                 }
               });
@@ -1029,6 +1132,63 @@
             return;
           }
           
+          if (this.type === 'hakai') {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            
+            // Core
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = '#ff00ff';
+            
+            // Core pulsating
+            const pulsate = Math.sin(Date.now() / 150) * 5;
+            
+            ctx.fillStyle = '#1a0033'; // Dark destructive core
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius + pulsate, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Outer aura
+            ctx.shadowBlur = 15;
+            ctx.strokeStyle = '#b92ffc';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius + pulsate + 5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Atom rings (orbiting paths)
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255, 0, 255, 0.8)';
+            
+            const time = Date.now() / 200;
+            for (let i = 0; i < 3; i++) {
+              ctx.save();
+              ctx.rotate(time + (i * Math.PI / 1.5));
+              ctx.scale(1, 0.3); // Ellipse shape
+              
+              // Orbit path
+              ctx.beginPath();
+              ctx.arc(0, 0, this.radius * 2.2, 0, Math.PI * 2);
+              ctx.stroke();
+              
+              // Electron
+              const electronAngle = (Date.now() / 100) + (i * Math.PI);
+              const ex = Math.cos(electronAngle) * this.radius * 2.2;
+              const ey = Math.sin(electronAngle) * this.radius * 2.2;
+              
+              ctx.fillStyle = '#00ffff';
+              ctx.shadowColor = '#00ffff';
+              ctx.shadowBlur = 15;
+              ctx.beginPath();
+              ctx.arc(ex, ey, 8, 0, Math.PI * 2);
+              ctx.fill();
+              
+              ctx.restore();
+            }
+            
+            ctx.restore();
+            return;
+          }
           if (this.type === 'genkidama') {
             const t = Date.now();
             ctx.save();
@@ -1502,6 +1662,35 @@
           particles.push(p);
         }
       }
+      
+      function createHakaiExplosion(x, y) {
+        screenShake = 100;
+        
+        // Huge dark magenta/purple expanding blast rings
+        particles.push(new Particle(x, y, '#ff00ff', 'ring'));
+        particles.push(new Particle(x, y, '#9900ff', 'ring'));
+        particles.push(new Particle(x, y, '#ffffff', 'ring'));
+        
+        // Massive dense dark clouds of smoke
+        for (let i = 0; i < 150; i++) {
+          const px = x + (Math.random() - 0.5) * 350;
+          const py = y + (Math.random() - 0.5) * 350;
+          particles.push(new Particle(px, py, 'rgba(255, 0, 255, 0.7)', 'fire-smoke'));
+          particles.push(new Particle(px, py, 'rgba(75, 0, 130, 0.9)', 'fire-smoke'));
+          particles.push(new Particle(px, py, 'rgba(0, 0, 0, 0.85)', 'fire-smoke'));
+        }
+        
+        // Super fast high energy sparks shooting out everywhere
+        for (let i = 0; i < 100; i++) {
+          const angle = (i / 100) * Math.PI * 2;
+          const speed = 8.0 + Math.random() * 12.0; // Extreme speed
+          const p = new Particle(x, y, '#ff00ff', 'sparkle');
+          p.vx = Math.cos(angle) * speed;
+          p.vy = Math.sin(angle) * speed;
+          p.decay = 0.002 + Math.random() * 0.003; // Long tails
+          particles.push(p);
+        }
+      }
 
       function createAtomicBombExplosion(x, y) {
         // Heavy Screen Shake
@@ -1865,8 +2054,54 @@
       }
 
       // Trigger DBZ Power based on coins
+      function triggerHakai(player) {
+        const overlay = document.getElementById('hakai-screen');
+        const avatar = document.getElementById('hakai-avatar');
+        const nameEl = document.getElementById('hakai-name');
+        
+        avatar.src = player.img ? (player.avatarUrl || '') : '';
+        if (!player.avatarUrl) avatar.style.display = 'none';
+        else avatar.style.display = 'block';
+        
+        nameEl.textContent = player.nickname;
+        
+        overlay.classList.add('active');
+        
+        // Wait 4 seconds for the cinematic to finish
+        setTimeout(() => {
+          overlay.classList.remove('active');
+          
+          if (gameState !== STATE_PLAYING) return;
+          
+          // Target the center of the enemy side
+          const targetX = player.team === 1 ? (canvas.width * 0.75) : (canvas.width * 0.25);
+          const targetY = canvas.height * 0.5;
+          
+          const centerTarget = {
+            x: targetX,
+            y: targetY,
+            isDead: false,
+            fadeAlpha: 1.0,
+            team: player.team === 1 ? 2 : 1,
+            randomSeed: 0,
+            takeDamage: () => 0
+          };
+          
+          // Launch the Hakai atomic projectile to the center
+          projectiles.push(new Projectile(player.x, player.y, centerTarget, player.team, 'hakai', 0, player, 5000));
+          createDamageText(player.x, player.y - 25, "¡HAKAI! ⚛️", true);
+        }, 4000);
+      }
+
       function triggerGiftPower(player, coins, showText = true) {
-        const username = player.username;
+        if (!player || player.isDead) return;
+
+        // 5000C - HAKAI DE BILLS (Destrucción total)
+        if (coins >= 5000) {
+          triggerHakai(player);
+          return;
+        }
+
         const targets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
         
         let target = targets.length > 0 ? targets[Math.floor(Math.random() * targets.length)] : null;

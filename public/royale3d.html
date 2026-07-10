@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>TikTok 3D Battle Royale</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-dark: #08090c;
+      --primary: #fe0979;
+      --secondary: #00f2fe;
+      --text: #ffffff;
+      --panel-bg: rgba(15, 16, 21, 0.85);
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      user-select: none;
+    }
+    
+    #game-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    /* UI Overlay Layer */
+    #ui-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .top-hud {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .timer-display {
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid var(--primary);
+      border-radius: 12px;
+      padding: 10px 30px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      text-shadow: 0 0 10px var(--primary);
+      margin-bottom: 10px;
+      box-shadow: 0 0 20px rgba(254, 9, 121, 0.3);
+    }
+
+    .alive-counter {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 5px 20px;
+      border-radius: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .scoreboard {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--panel-bg);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 15px;
+      width: 200px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .scoreboard h3 {
+      margin: 0 0 10px 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      text-align: center;
+      color: #ffd700;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 5px;
+    }
+
+    .score-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .score-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 120px;
+    }
+
+    .score-dmg {
+      font-weight: bold;
+      color: #ff4444;
+    }
+
+    .status-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+    
+    .status-overlay h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 64px;
+      font-weight: 900;
+      margin: 0;
+      text-transform: uppercase;
+      text-shadow: 0 0 20px var(--primary);
+    }
+
+    .status-overlay p {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+
+    .open-controls-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: var(--panel-bg);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--text);
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      z-index: 100;
+      transition: background 0.2s;
+      pointer-events: auto;
+    }
+
+    .open-controls-btn:hover {
+      background: var(--primary);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+
+    /* 2D Labels over 3D objects */
+    #labels-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .player-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      will-change: transform;
+    }
+
+    .player-name {
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 1px 2px black, -1px -1px 2px black, 1px -1px 2px black, -1px 1px 2px black;
+      background: rgba(0,0,0,0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-bottom: 4px;
+    }
+
+    .hp-bar-bg {
+      width: 40px;
+      height: 6px;
+      background: rgba(0,0,0,0.8);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .hp-bar-fill {
+      width: 100%;
+      height: 100%;
+      background: #10b981;
+      transition: width 0.1s;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container"></div>
+  
+  <div id="labels-container"></div>
+
+  <div id="ui-layer">
+    <div class="top-hud">
+      <div id="timer-display" class="timer-display">05:00</div>
+      <div class="alive-counter">Luchadores Vivos: <span id="alive-count">0</span></div>
+    </div>
+
+      <div class="scoreboard">
+      <h3>TOP DAÑO</h3>
+      <div id="scoreboard-list">
+        <!-- JS will populate this -->
+      </div>
+    </div>
+    
+    <button class="open-controls-btn" onclick="showControls()"><i class="fas fa-cog"></i> Controles</button>
+  </div>
+
+  <div id="status-screen" class="status-overlay">
+    <h1 id="status-title">ESPERANDO JUGADORES</h1>
+    <p id="status-subtitle">Escribe "GO" para entrar a la arena</p>
+  </div>
+
+  <!-- Scripts -->
+  <!-- Using Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+  
+  <script>
+    // System Constants
+    const STATE_WAITING = 0;
+    const STATE_PLAYING = 1;
+    const STATE_GAMEOVER = 2;
+
+    // Game Variables
+    let gameState = STATE_WAITING;
+    let matchEndTime = 0;
+    let fighters = [];
+    let isGameActive = false; // Controlled by the remote
+
+    // Three.js Setup
+    const container = document.getElementById('game-container');
+    const labelsContainer = document.getElementById('labels-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a14);
+    scene.fog = new THREE.FogExp2(0x0a0a14, 0.002);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+    // Position camera looking down at the arena, zoomed out enough to see the whole 500x500 square
+    camera.position.set(0, 450, 400);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(50, 100, 50);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.left = -150;
+    dirLight.shadow.camera.right = 150;
+    dirLight.shadow.camera.top = 150;
+    dirLight.shadow.camera.bottom = -150;
+    scene.add(dirLight);
+
+    // Grid / Arena Floor
+    const arenaSize = 250;
+    const floorGeo = new THREE.PlaneGeometry(arenaSize * 2, arenaSize * 2);
+    const floorMat = new THREE.MeshStandardMaterial({ 
+      color: 0x111122,
+      roughness: 0.8,
+      metalness: 0.2
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    const gridHelper = new THREE.GridHelper(arenaSize * 2, 50, 0xfe0979, 0x333333);
+    gridHelper.position.y = 0.1;
+    scene.add(gridHelper);
+
+    // Boundary walls (visual)
+    const wallGeo = new THREE.BoxGeometry(arenaSize * 2, 10, 2);
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, transparent: true, opacity: 0.3, emissive: 0x00f2fe, emissiveIntensity: 0.5 });
+    
+    const wallN = new THREE.Mesh(wallGeo, wallMat);
+    wallN.position.set(0, 5, -arenaSize);
+    scene.add(wallN);
+    
+    const wallS = new THREE.Mesh(wallGeo, wallMat);
+    wallS.position.set(0, 5, arenaSize);
+    scene.add(wallS);
+    
+    const wallE = new THREE.Mesh(wallGeo, wallMat);
+    wallE.rotation.y = Math.PI / 2;
+    wallE.position.set(arenaSize, 5, 0);
+    scene.add(wallE);
+    
+    const wallW = new THREE.Mesh(wallGeo, wallMat);
+    wallW.rotation.y = Math.PI / 2;
+    wallW.position.set(-arenaSize, 5, 0);
+    scene.add(wallW);
+
+    // Texture Loader with anonymous CORS
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous');
+
+    // Default Avatar Texture Fallback
+    function createDefaultTexture(color) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64; canvas.height = 64;
+      const context = canvas.getContext('2d');
+      context.fillStyle = color;
+      context.fillRect(0,0,64,64);
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    // Global 3D Model
+    let globalCharacterModel = null;
+    let globalCharacterAnimations = [];
+    let mixers = [];
+
+    const gltfLoader = new THREE.GLTFLoader();
+    document.getElementById('status-subtitle').textContent = "Cargando modelo 3D...";
+    gltfLoader.load('luchador.glb', (gltf) => {
+      globalCharacterModel = gltf.scene;
+      globalCharacterAnimations = gltf.animations;
+      
+      // Ajustar escala (depende de cómo se exportó de Mixamo, 0.1 o 10 suele ser necesario si es muy grande o chico)
+      // Ajustamos asumiendo escala estándar de 1 metro = 1 unidad.
+      globalCharacterModel.scale.set(10, 10, 10); 
+      
+      globalCharacterModel.traverse((node) => {
+        if (node.isMesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+          // Guardar el material original para poder clonarlo y teñirlo por jugador
+          node.userData.originalMaterial = node.material;
+        }
+      });
+      
+      document.getElementById('status-subtitle').textContent = "Escribe 'GO' para entrar a la arena";
+    }, undefined, (error) => {
+      console.warn("No se encontró luchador.glb, se usarán cubos por defecto.");
+      document.getElementById('status-subtitle').textContent = "Escribe 'GO' para entrar a la arena";
+    });
+
+    // Fighter Class
+    class Fighter3D {
+      constructor(username, nickname, profileUrl) {
+        this.username = username;
+        this.nickname = nickname;
+        this.maxHp = 1000;
+        this.hp = 1000;
+        this.damageDealt = 0;
+        this.isDead = false;
+        
+        this.speed = 30 + Math.random() * 15; // units per second
+        this.attackRange = 12;
+        this.attackDamage = 50;
+        this.attackCooldown = 0.8; // seconds
+        this.lastAttackTime = 0;
+        this.target = null;
+        this.knockback = new THREE.Vector3(0,0,0);
+
+        // Spawn position
+        this.position = new THREE.Vector3(
+          (Math.random() - 0.5) * (arenaSize * 1.5),
+          5, // half of box height (10)
+          (Math.random() - 0.5) * (arenaSize * 1.5)
+        );
+
+        // Create Mesh
+        const baseColor = new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
+        this.baseColorHex = baseColor.getHex();
+
+        if (globalCharacterModel) {
+          // Clone the model properly with SkeletonUtils
+          this.mesh = THREE.SkeletonUtils.clone(globalCharacterModel);
+          
+          // Tint the material slightly to differentiate players
+          this.mesh.traverse((node) => {
+            if (node.isMesh && node.userData.originalMaterial) {
+              node.material = node.userData.originalMaterial.clone();
+              // Try applying profile pic to the material (might look chaotic, but fun)
+              if (profileUrl) {
+                textureLoader.load(profileUrl, (tex) => { 
+                  node.material.map = tex; 
+                  node.material.color = new THREE.Color(0xffffff); // clear tint if tex is used
+                  node.material.needsUpdate = true;
+                });
+              } else {
+                node.material.color = baseColor;
+              }
+            }
+          });
+
+          // Animation Setup
+          this.mixer = new THREE.AnimationMixer(this.mesh);
+          mixers.push(this.mixer);
+
+          if (globalCharacterAnimations && globalCharacterAnimations.length > 0) {
+            // Find animations by keywords or fallback to indexes
+            const getAnim = (keywords, fallbackIdx) => {
+              for (const a of globalCharacterAnimations) {
+                const name = a.name.toLowerCase();
+                for (const kw of keywords) {
+                  if (name.includes(kw)) return a;
+                }
+              }
+              return globalCharacterAnimations[fallbackIdx] || globalCharacterAnimations[0];
+            };
+
+            const animIdle = getAnim(['idle', 'wait'], 0);
+            const animRun = getAnim(['run', 'walk', 'move'], 1);
+            const animAttack = getAnim(['punch', 'attack', 'hit'], 2);
+
+            this.actionIdle = this.mixer.clipAction(animIdle);
+            this.actionRun = this.mixer.clipAction(animRun);
+            this.actionAttack = this.mixer.clipAction(animAttack);
+
+            this.actionIdle.play();
+            this.currentAction = this.actionIdle;
+          }
+        } else {
+          // Fallback to Box
+          const geometry = new THREE.BoxGeometry(10, 10, 10);
+          const defaultTex = createDefaultTexture('#' + baseColor.getHexString());
+          
+          this.material = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            map: defaultTex,
+            roughness: 0.4
+          });
+          
+          if (profileUrl) {
+            textureLoader.load(profileUrl, (tex) => { 
+              this.material.map = tex; 
+              this.material.needsUpdate = true;
+            });
+          }
+          this.mesh = new THREE.Mesh(geometry, this.material);
+        }
+        
+        this.mesh.position.copy(this.position);
+        this.mesh.castShadow = true;
+        this.mesh.receiveShadow = true;
+        scene.add(this.mesh);
+
+        // Create 2D Label overlay
+        this.labelEl = document.createElement('div');
+        this.labelEl.className = 'player-label';
+        this.labelEl.innerHTML = `
+          <div class="hp-bar-bg"><div class="hp-bar-fill"></div></div>
+        `;
+        labelsContainer.appendChild(this.labelEl);
+        this.hpFill = this.labelEl.querySelector('.hp-bar-fill');
+      }
+
+      takeDamage(amount, attacker) {
+        if (this.isDead) return;
+        this.hp -= amount;
+        
+        // Add knockback
+        const pushDir = new THREE.Vector3().subVectors(this.position, attacker.position).normalize();
+        this.knockback.add(pushDir.multiplyScalar(20));
+
+        // Create hit visual (flash red)
+        this.mesh.traverse((node) => {
+          if (node.isMesh && node.material) {
+            const oldEmissive = node.material.emissive ? node.material.emissive.getHex() : 0x000000;
+            if (node.material.emissive) node.material.emissive.setHex(0xff0000);
+            setTimeout(() => {
+              if (node && node.material && node.material.emissive) node.material.emissive.setHex(oldEmissive);
+            }, 150);
+          }
+        });
+
+        if (this.hp <= 0) {
+          this.hp = 0;
+          this.die();
+        }
+        this.updateLabel();
+      }
+
+      die() {
+        this.isDead = true;
+        scene.remove(this.mesh);
+        this.labelEl.remove();
+        if (this.mixer) {
+          mixers = mixers.filter(m => m !== this.mixer);
+        }
+      }
+
+      updateLabel() {
+        if (this.isDead) return;
+        // Update HP bar color and width
+        const hpPercent = Math.max(0, this.hp / this.maxHp);
+        this.hpFill.style.width = (hpPercent * 100) + '%';
+        if (hpPercent < 0.25) this.hpFill.style.background = '#ef4444';
+        else if (hpPercent < 0.5) this.hpFill.style.background = '#f59e0b';
+        else this.hpFill.style.background = '#10b981';
+
+        // Project 3D position to 2D screen coordinates
+        const tempV = this.position.clone();
+        tempV.y += 10; // offset above mesh
+        tempV.project(camera);
+        
+        const x = (tempV.x *  .5 + .5) * window.innerWidth;
+        const y = (tempV.y * -.5 + .5) * window.innerHeight;
+        
+        // Hide if behind camera
+        if (tempV.z > 1) {
+          this.labelEl.style.display = 'none';
+        } else {
+          this.labelEl.style.display = 'flex';
+          this.labelEl.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+        }
+      }
+
+      update(dt, time) {
+        if (this.isDead || gameState !== STATE_PLAYING) {
+          this.updateLabel();
+          return;
+        }
+
+        // Apply knockback friction
+        if (this.knockback.lengthSq() > 0.1) {
+          this.position.addScaledVector(this.knockback, dt);
+          this.knockback.lerp(new THREE.Vector3(0,0,0), 10 * dt);
+        }
+
+        const iAmPaired = this.target && !this.target.isDead && this.target.target === this;
+
+        // Re-evaluate target if we don't have one, our target is dead, or we are not in a 1v1 pair
+        if (!this.target || this.target.isDead || (!iAmPaired && Math.random() < 0.1)) { 
+          let bestFree = null;
+          let minFreeDist = Infinity;
+          
+          let bestBusy = null;
+          let minBusyDist = Infinity;
+          
+          for (let i = 0; i < fighters.length; i++) {
+            const f = fighters[i];
+            if (f === this || f.isDead) continue;
+            
+            const dist = this.position.distanceToSquared(f.position);
+            // A fighter is busy (paired) if they are targeting someone who is targeting them back
+            const fIsPaired = f.target && !f.target.isDead && f.target.target === f;
+            
+            if (!fIsPaired) {
+              if (dist < minFreeDist) {
+                minFreeDist = dist;
+                bestFree = f;
+              }
+            } else {
+              if (dist < minBusyDist) {
+                minBusyDist = dist;
+                bestBusy = f;
+              }
+            }
+          }
+          
+          // Prioritize free fighters over busy fighters
+          const newTarget = bestFree || bestBusy;
+          if (newTarget) {
+            this.target = newTarget;
+          }
+        }
+
+        // Separation physics: push away from very close fighters to avoid clumping
+        for (let i = 0; i < fighters.length; i++) {
+          const f = fighters[i];
+          if (f === this || f.isDead) continue;
+          const distSq = this.position.distanceToSquared(f.position);
+          const minSep = 12; // Personal space radius
+          if (distSq < minSep * minSep && distSq > 0.1) {
+            const dist = Math.sqrt(distSq);
+            const pushDir = new THREE.Vector3().subVectors(this.position, f.position).normalize();
+            const pushForce = (minSep - dist) * 5; // The closer they are, the harder they push away
+            this.position.addScaledVector(pushDir, pushForce * dt);
+          }
+        }
+
+        // Move towards target
+        if (this.target) {
+          const distToTarget = this.position.distanceTo(this.target.position);
+          
+          if (distToTarget > this.attackRange) {
+            // Move
+            const dir = new THREE.Vector3().subVectors(this.target.position, this.position).normalize();
+            this.position.addScaledVector(dir, this.speed * dt);
+            
+            // Rotate to face target
+            // Need to handle Y rotation for proper facing
+            const targetPos = this.target.position.clone();
+            targetPos.y = this.mesh.position.y;
+            this.mesh.lookAt(targetPos);
+
+            // Play Run Animation
+            if (this.actionRun && this.currentAction !== this.actionRun) {
+              if (this.currentAction) this.currentAction.crossFadeTo(this.actionRun, 0.2, true);
+              this.actionRun.play();
+              this.currentAction = this.actionRun;
+            }
+          } else {
+            // Attack
+            // Rotate to face target
+            const targetPos = this.target.position.clone();
+            targetPos.y = this.mesh.position.y;
+            this.mesh.lookAt(targetPos);
+
+            if (time - this.lastAttackTime > this.attackCooldown) {
+              this.target.takeDamage(this.attackDamage, this);
+              this.damageDealt += this.attackDamage;
+              this.lastAttackTime = time;
+              
+              // Attack animation jump fallback if no real animation
+              if (!this.actionAttack) {
+                this.mesh.position.addScaledVector(new THREE.Vector3().subVectors(this.target.position, this.position).normalize(), 5);
+              }
+            }
+
+            // Play Attack Animation
+            if (this.actionAttack && this.currentAction !== this.actionAttack) {
+              if (this.currentAction) this.currentAction.crossFadeTo(this.actionAttack, 0.1, true);
+              this.actionAttack.play();
+              this.currentAction = this.actionAttack;
+            }
+          }
+        } else {
+          // No target, play Idle
+          if (this.actionIdle && this.currentAction !== this.actionIdle) {
+            if (this.currentAction) this.currentAction.crossFadeTo(this.actionIdle, 0.3, true);
+            this.actionIdle.play();
+            this.currentAction = this.actionIdle;
+          }
+        }
+
+        // Constrain to arena
+        if (this.position.x > arenaSize - 5) this.position.x = arenaSize - 5;
+        if (this.position.x < -arenaSize + 5) this.position.x = -arenaSize + 5;
+        if (this.position.z > arenaSize - 5) this.position.z = arenaSize - 5;
+        if (this.position.z < -arenaSize + 5) this.position.z = -arenaSize + 5;
+
+        // Apply base position
+        this.mesh.position.lerp(this.position, 15 * dt);
+        
+        // Bobbing animation while moving (only if no real animations)
+        if (!this.mixer && this.target && this.position.distanceTo(this.target.position) > this.attackRange) {
+          this.mesh.position.y = this.position.y + Math.abs(Math.sin(time * 15)) * 3;
+        }
+
+        this.updateLabel();
+      }
+    }
+
+    // Socket Initialization
+    const socket = io();
+    
+    socket.on("live-event", (event) => {
+      if (!isGameActive) return;
+
+      if (event.type === "chat") {
+        if (event.comment.trim().toLowerCase() === "go") {
+          joinGame(event.uniqueId, event.nickname, event.profilePictureUrl);
+        }
+      } else if (event.type === "gift") {
+        // Apply benefits later
+        handleGiftEvent(event);
+      }
+    });
+
+    function joinGame(username, nickname, profileUrl) {
+      if (gameState !== STATE_PLAYING) return;
+      
+      // Check if already in game
+      const existing = fighters.find(f => f.username === username);
+      if (existing) {
+        if (existing.isDead) {
+          // Respawn logic or ignore? For now, ignore if dead.
+          // Or we can revive them. Let's revive with "go".
+          existing.isDead = false;
+          existing.hp = existing.maxHp;
+          existing.position.set(
+            (Math.random() - 0.5) * (arenaSize * 1.5),
+            5,
+            (Math.random() - 0.5) * (arenaSize * 1.5)
+          );
+          scene.add(existing.mesh);
+          labelsContainer.appendChild(existing.labelEl);
+        }
+        return; 
+      }
+
+      // Limit fighters to prevent severe lag
+      if (fighters.filter(f => !f.isDead).length >= 150) return;
+
+      const newFighter = new Fighter3D(username, nickname, profileUrl);
+      fighters.push(newFighter);
+    }
+
+    function handleGiftEvent(event) {
+      // Stub for later: give HP, size, or damage boost
+      if (event.repeatEnd === false) return;
+      
+      const coins = (event.diamondCount || 1) * (event.repeatCount || 1);
+      const fighter = fighters.find(f => f.username === event.uniqueId);
+      
+      if (fighter && !fighter.isDead) {
+        fighter.maxHp += coins * 15;
+        fighter.hp += coins * 15;
+        fighter.attackDamage += coins;
+        
+        // Visual cue (scale up slightly)
+        const scale = Math.min(2.5, 1 + (fighter.maxHp - 1000) / 2000);
+        fighter.mesh.scale.set(scale, scale, scale);
+      }
+    }
+
+    // Main Engine Loop
+    const clock = new THREE.Clock();
+
+    function updateScoreboard() {
+      const sbList = document.getElementById('scoreboard-list');
+      // Sort by damage, exclude dead? Or keep dead in scoreboard
+      const sorted = [...fighters].sort((a,b) => b.damageDealt - a.damageDealt).slice(0, 5);
+      
+      let html = '';
+      sorted.forEach((f, index) => {
+        html += `
+          <div class="score-item">
+            <span class="score-name">${index + 1}. ${f.nickname} ${f.isDead ? '💀' : ''}</span>
+            <span class="score-dmg">${Math.round(f.damageDealt)}</span>
+          </div>
+        `;
+      });
+      sbList.innerHTML = html;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const dt = clock.getDelta();
+      const time = clock.getElapsedTime();
+
+      if (isGameActive && gameState === STATE_PLAYING) {
+        let aliveCount = 0;
+        
+        // Update all animation mixers
+        for (let i = 0; i < mixers.length; i++) {
+          mixers[i].update(dt);
+        }
+
+        for (let i = 0; i < fighters.length; i++) {
+          fighters[i].update(dt, time);
+          if (!fighters[i].isDead) aliveCount++;
+        }
+        document.getElementById('alive-count').textContent = aliveCount;
+
+        // Timer Update
+        const remaining = Math.max(0, matchEndTime - Date.now());
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        document.getElementById('timer-display').textContent = 
+          `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (remaining <= 0) {
+          gameState = STATE_GAMEOVER;
+          document.getElementById('status-screen').classList.remove('hidden');
+          document.getElementById('status-title').textContent = "¡TIEMPO TERMINADO!";
+          document.getElementById('status-subtitle').textContent = "Buscando al ganador...";
+        }
+
+        // Update scoreboard every ~60 frames
+        if (Math.floor(time * 60) % 30 === 0) {
+          updateScoreboard();
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    
+    animate();
+
+    // Window Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // API Export for External Controller
+    window.RoyaleAPI = {
+      getState: () => ({ isGameActive, gameState: gameState === STATE_PLAYING ? 'PLAYING' : 'WAITING' }),
+      togglePlay: (timeMins) => {
+        isGameActive = !isGameActive;
+        if (isGameActive) {
+          if (gameState === STATE_WAITING || gameState === STATE_GAMEOVER) {
+            matchEndTime = Date.now() + (timeMins * 60000);
+            gameState = STATE_PLAYING;
+            
+            // Clean up old fighters
+            fighters.forEach(f => { scene.remove(f.mesh); f.labelEl.remove(); });
+            fighters = [];
+            mixers = [];
+            
+            document.getElementById('status-screen').classList.add('hidden');
+          }
+        } else {
+          document.getElementById('status-screen').classList.remove('hidden');
+          document.getElementById('status-title').textContent = "PAUSADO";
+          document.getElementById('status-subtitle').textContent = "";
+        }
+      },
+      setTime: (ms) => {
+        if (gameState === STATE_PLAYING) {
+          matchEndTime = Date.now() + ms;
+        }
+      },
+      addTime: (ms) => {
+        if (gameState === STATE_PLAYING) {
+          matchEndTime += ms;
+        }
+      },
+      endMatch: () => {
+        if (gameState === STATE_PLAYING) {
+          matchEndTime = Date.now();
+        }
+      },
+      simulateJoin: (user) => {
+        joinGame(user.toLowerCase(), user, "");
+      },
+      simulateGift: (user, coins, combo) => {
+        handleGiftEvent({
+          type: "gift",
+          uniqueId: user.toLowerCase(),
+          nickname: user,
+          profilePictureUrl: "",
+          giftName: `Sim_${coins}Coins`,
+          diamondCount: coins,
+          repeatCount: combo,
+          repeatEnd: true
+        });
+      }
+    };
+
+    function showControls() {
+      window.open('royale-controls.html', 'RoyaleControls', 'width=350,height=600,resizable=yes');
+    }
+
+    document.addEventListener("dblclick", showControls);
+    document.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === 'c') {
+        showControls();
+      }
+    });
+  </script>
+</body>
+</html>

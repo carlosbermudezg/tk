@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controles - 3D Battle Royale</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0f1015;
+      --panel-bg: #1a1c23;
+      --primary: #fe0979;
+      --secondary: #00f2fe;
+      --text: #ffffff;
+      --text-secondary: #9ca3af;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --border: #2d303b;
+    }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 15px;
+      overflow-x: hidden;
+    }
+    
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      color: var(--primary);
+      text-align: center;
+      margin-top: 0;
+      font-size: 24px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+    
+    .card {
+      background: var(--panel-bg);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border: 1px solid var(--border);
+    }
+    
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: var(--secondary);
+    }
+    
+    .row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+      transition: opacity 0.2s;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .btn:hover { opacity: 0.9; }
+    
+    .btn-success { background: var(--success); }
+    .btn-danger { background: var(--danger); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.05); }
+    
+    .input-field {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      outline: none;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .input-field:focus { border-color: var(--primary); }
+    
+    .size-input { width: 60px; flex: none; text-align: center; }
+    .label { font-size: 14px; font-weight: 600; color: var(--text-secondary); width: 85px; }
+
+    #status-msg {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Panel Royale 3D</h2>
+  
+  <div id="status-msg" style="color:var(--warning)">⏳ Conectando...</div>
+
+  <!-- Controles Principales -->
+  <div class="card">
+    <div class="row">
+      <button id="start-btn" class="btn btn-success"><i class="fas fa-play"></i> Iniciar Partida</button>
+    </div>
+    <div class="row">
+      <button id="end-match-btn" class="btn btn-danger" style="display:none;"><i class="fas fa-stop"></i> Terminar Partida</button>
+    </div>
+  </div>
+
+  <!-- Configuración -->
+  <div class="card">
+    <h3 class="card-title"><i class="fas fa-clock"></i> Tiempo</h3>
+    <div class="row">
+      <span class="label">Límite (min):</span>
+      <input type="number" id="time-limit" class="input-field size-input" value="5" min="1" max="60">
+    </div>
+    <div class="row">
+      <span class="label" style="font-size:12px; margin-right:5px;">Ajuste Rápido:</span>
+      <button id="add-time-30" class="btn btn-outline" style="padding:6px; flex:1; font-size:12px;">+30s</button>
+      <button id="add-time-60" class="btn btn-outline" style="padding:6px; flex:1; font-size:12px;">+1m</button>
+    </div>
+  </div>
+
+  <!-- Simulador -->
+  <div class="card">
+    <h3 class="card-title"><i class="fas fa-vial"></i> Simulador</h3>
+    <div class="row">
+      <input type="text" id="sim-user" class="input-field" placeholder="Nombre usuario...">
+    </div>
+    <div class="row">
+      <button id="sim-join" class="btn btn-outline"><i class="fas fa-sign-in-alt"></i> Escribió "GO"</button>
+    </div>
+    <div class="row" style="margin-top:5px">
+      <input type="number" id="sim-coins" class="input-field size-input" value="5" min="1" title="Monedas">
+      <span style="color:var(--text-secondary)">x</span>
+      <input type="number" id="sim-combo" class="input-field size-input" value="1" min="1" title="Combo">
+      <button id="sim-gift" class="btn btn-outline" style="border-color:rgba(245,158,11,0.4);color:var(--warning)"><i class="fas fa-gift"></i> Regalo</button>
+    </div>
+  </div>
+
+  <script>
+    let royaleAPI = null;
+    let isPlaying = false;
+
+    function connectToGame() {
+      if (window.opener && window.opener.RoyaleAPI) {
+        royaleAPI = window.opener.RoyaleAPI;
+        document.getElementById('status-msg').textContent = "✅ Conectado a Royale 3D";
+        document.getElementById('status-msg').style.color = "var(--success)";
+        syncState();
+      } else {
+        document.getElementById('status-msg').textContent = "❌ No se encontró el Juego. Abre esta ventana desde royale3d.html";
+        document.getElementById('status-msg').style.color = "var(--danger)";
+      }
+    }
+
+    function syncState() {
+      if (!royaleAPI) return;
+      const state = royaleAPI.getState();
+      isPlaying = state.isGameActive;
+      
+      const startBtn = document.getElementById("start-btn");
+      if (isPlaying) {
+        startBtn.className = "btn btn-danger";
+        startBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+        document.getElementById("end-match-btn").style.display = (state.gameState === 'PLAYING') ? 'flex' : 'none';
+      } else {
+        startBtn.className = "btn btn-success";
+        startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+        document.getElementById("end-match-btn").style.display = 'none';
+      }
+    }
+
+    setInterval(connectToGame, 2000);
+    setTimeout(connectToGame, 500);
+
+    // Event Listeners
+    document.getElementById("start-btn").addEventListener("click", () => {
+      if (royaleAPI) {
+        const mins = parseFloat(document.getElementById("time-limit").value) || 5;
+        royaleAPI.togglePlay(mins);
+        setTimeout(syncState, 200);
+      }
+    });
+
+    document.getElementById("end-match-btn").addEventListener("click", () => {
+      if (royaleAPI) {
+        royaleAPI.endMatch();
+        setTimeout(syncState, 200);
+      }
+    });
+
+    document.getElementById("add-time-30").addEventListener("click", () => {
+      if (royaleAPI) royaleAPI.addTime(30000);
+    });
+    document.getElementById("add-time-60").addEventListener("click", () => {
+      if (royaleAPI) royaleAPI.addTime(60000);
+    });
+
+    // Simulator
+    document.getElementById("sim-join").addEventListener("click", () => {
+      if (royaleAPI) {
+        const user = document.getElementById("sim-user").value || ("Guerrero_" + Math.floor(Math.random()*1000));
+        royaleAPI.simulateJoin(user);
+      }
+    });
+
+    document.getElementById("sim-gift").addEventListener("click", () => {
+      if (royaleAPI) {
+        const user = document.getElementById("sim-user").value || "TestUser";
+        const coins = parseInt(document.getElementById("sim-coins").value) || 5;
+        const combo = parseInt(document.getElementById("sim-combo").value) || 1;
+        royaleAPI.simulateGift(user, coins, combo);
+      }
+    });
+  </script>
+</body>
+</html>

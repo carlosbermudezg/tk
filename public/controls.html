@@ -186,10 +186,14 @@
       <button id="set-time-btn" class="btn btn-outline" style="padding:6px; margin-left:5px;"><i class="fas fa-clock"></i></button>
     </div>
     <div class="row">
-      <span class="label">Tamaño Canvas:</span>
-      <input type="number" id="canvas-w" class="input-field size-input" value="420" min="200" max="1920">
-      <span style="color:var(--text-secondary)">x</span>
-      <input type="number" id="canvas-h" class="input-field size-input" value="650" min="300" max="1080">
+        <select id="gift-selector" class="input-field">
+            <option value="199">199 Coins (Kiesan)</option>
+            <option value="299">299 Coins (Makankosapo)</option>
+            <option value="500">500 Coins (Kamehameha)</option>
+            <option value="1000">1000 Coins (Genkidama Final)</option>
+            <option value="5000">5000 Coins (Hakai de Bills)</option>
+        </select>
+        <input type="number" id="canvas-h" class="input-field size-input" value="650" min="300" max="1080">
     </div>
     <div class="row">
       <button id="apply-size-btn" class="btn btn-outline"><i class="fas fa-crop"></i> Aplicar Tamaño</button>
@@ -211,6 +215,15 @@
       <button id="sim-t2" class="btn btn-outline btn-t2"><i class="fas fa-plus"></i> Unir Eq 2</button>
     </div>
     <div class="row" style="margin-top:5px">
+      <select id="sim-coins-select" class="input-field" style="width: 130px; margin-right: 5px;" onchange="document.getElementById('sim-coins').value = this.value">
+        <option value="5">5 Coins (Fuego)</option>
+        <option value="30">30 Coins (Rayo)</option>
+        <option value="199">199 Coins (Kiesan)</option>
+        <option value="299">299 Coins (Makankosapo)</option>
+        <option value="500">500 Coins (Kamehameha)</option>
+        <option value="1000">1000 Coins (Genkidama)</option>
+        <option value="5000">5000 Coins (Hakai)</option>
+      </select>
       <input type="number" id="sim-coins" class="input-field size-input" value="5" min="1" title="Monedas">
       <span style="color:var(--text-secondary)">x</span>
       <input type="number" id="sim-combo" class="input-field size-input" value="1" min="1" title="Combo">
