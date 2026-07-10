@@ -475,6 +475,8 @@
             this.x = canvas.width - (canvas.width * 0.25) - 40 + Math.random() * (canvas.width * 0.25);
             this.y = 40 + Math.random() * (canvas.height - 80);
           }
+          this.baseX = this.x;
+          this.baseY = this.y;
         }
 
         draw() {
@@ -485,6 +487,12 @@
           // Smooth sliding friction physics & boundary limits
           this.x += this.vx;
           this.vx *= 0.85;
+
+          // Gradually return to base position if they are pushed away
+          if (!this.isDead) {
+            this.x += (this.baseX - this.x) * 0.03;
+            this.y += (this.baseY - this.y) * 0.03;
+          }
 
           if (this.team === 1) {
             if (this.x < 30) { this.x = 30; this.vx = 0; }
@@ -1657,15 +1665,18 @@
         ctx.setLineDash([]); // Reset
         ctx.restore();
 
+        // Cache alive targets once per frame to avoid O(N^2) complexity
+        const aliveTeam2 = playersTeam2.filter(t => !t.isDead);
+        const aliveTeam1 = playersTeam1.filter(t => !t.isDead);
+
         // Update players Team 1
         playersTeam1.forEach(p => {
           p.draw();
           const isSuperSpeed = Date.now() < p.superSpeedTimer;
           const currentCooldown = isSuperSpeed ? 150 : p.shootCooldown;
           if (gameState === STATE_PLAYING && !p.isDead && Date.now() - p.lastShot > currentCooldown) {
-            const aliveTargets = playersTeam2.filter(t => !t.isDead);
-            if (aliveTargets.length > 0) {
-              const target = aliveTargets[Math.floor(Math.random() * aliveTargets.length)];
+            if (aliveTeam2.length > 0) {
+              const target = aliveTeam2[Math.floor(Math.random() * aliveTeam2.length)];
               const isSuper = Date.now() < p.superShotTimer;
               projectiles.push(new Projectile(p.x, p.y, target, 1, isSuper ? 'fire' : 'normal', 0, p));
               p.lastShot = Date.now();
@@ -1679,9 +1690,8 @@
           const isSuperSpeed = Date.now() < p.superSpeedTimer;
           const currentCooldown = isSuperSpeed ? 150 : p.shootCooldown;
           if (gameState === STATE_PLAYING && !p.isDead && Date.now() - p.lastShot > currentCooldown) {
-            const aliveTargets = playersTeam1.filter(t => !t.isDead);
-            if (aliveTargets.length > 0) {
-              const target = aliveTargets[Math.floor(Math.random() * aliveTargets.length)];
+            if (aliveTeam1.length > 0) {
+              const target = aliveTeam1[Math.floor(Math.random() * aliveTeam1.length)];
               const isSuper = Date.now() < p.superShotTimer;
               projectiles.push(new Projectile(p.x, p.y, target, 2, isSuper ? 'fire' : 'normal', 0, p));
               p.lastShot = Date.now();
@@ -1706,6 +1716,10 @@
           if (p.alpha > 0) p.draw();
           return p.alpha > 0;
         });
+        // Cap particles array to prevent lag
+        if (particles.length > 300) {
+          particles = particles.slice(particles.length - 300);
+        }
 
         // Damage text
         damageTexts = damageTexts.filter(d => {
@@ -1713,6 +1727,10 @@
           if (d.alpha > 0) d.draw();
           return d.alpha > 0;
         });
+        // Cap damage texts array to prevent lag
+        if (damageTexts.length > 100) {
+          damageTexts = damageTexts.slice(damageTexts.length - 100);
+        }
 
         // HUD Team Labels
         ctx.font = '900 24px Outfit, sans-serif';
