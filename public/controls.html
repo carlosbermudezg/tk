@@ -211,7 +211,9 @@
       <button id="sim-t2" class="btn btn-outline btn-t2"><i class="fas fa-plus"></i> Unir Eq 2</button>
     </div>
     <div class="row" style="margin-top:5px">
-      <input type="number" id="sim-coins" class="input-field size-input" value="5" min="1">
+      <input type="number" id="sim-coins" class="input-field size-input" value="5" min="1" title="Monedas">
+      <span style="color:var(--text-secondary)">x</span>
+      <input type="number" id="sim-combo" class="input-field size-input" value="1" min="1" title="Combo">
       <button id="sim-gift" class="btn btn-outline" style="border-color:rgba(245,158,11,0.4);color:var(--warning)"><i class="fas fa-gift"></i> Enviar Regalo</button>
     </div>
   </div>
@@ -333,7 +335,8 @@
       if (battleAPI) {
         const user = document.getElementById("sim-user").value || "TestUser";
         const coins = parseInt(document.getElementById("sim-coins").value) || 5;
-        battleAPI.simulateGift(user, coins);
+        const combo = parseInt(document.getElementById("sim-combo").value) || 1;
+        battleAPI.simulateGift(user, coins, combo);
       }
     });
     document.getElementById("apply-teams-btn").addEventListener("click", () => {

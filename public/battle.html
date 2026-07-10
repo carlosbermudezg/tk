@@ -305,7 +305,9 @@
       <input type="text" id="sim-user" class="input-field" style="width:90px" placeholder="Simulado...">
       <button id="sim-t1" class="btn btn-outline btn-t1" title="Unir al Equipo 1"><i class="fas fa-plus"></i> Eq 1</button>
       <button id="sim-t2" class="btn btn-outline btn-t2" title="Unir al Equipo 2"><i class="fas fa-plus"></i> Eq 2</button>
-      <input type="number" id="sim-coins" class="input-field size-input" style="width:45px" value="5" min="1">
+      <input type="number" id="sim-coins" class="input-field size-input" style="width:45px" value="5" min="1" title="Monedas">
+      <span style="color:var(--text-secondary)">x</span>
+      <input type="number" id="sim-combo" class="input-field size-input" style="width:45px" value="1" min="1" title="Combo">
       <button id="sim-gift" class="btn btn-outline" style="border-color:rgba(245,158,11,0.4);color:var(--warning)" title="Simular envío de Regalo"><i class="fas fa-gift"></i> Regalo</button>
     </div>
 
@@ -605,10 +607,6 @@
             ctx.fillText(`${Math.round(this.hp)} / ${this.maxHp}`, drawX, barY - 3);
           }
 
-          ctx.font = '9px Inter, sans-serif';
-          ctx.fillStyle = '#e5e7eb';
-          ctx.textAlign = 'center';
-          ctx.fillText(this.nickname, drawX, drawY + this.radius + 10);
           ctx.restore();
         }
 
@@ -1613,9 +1611,6 @@
 
         if (bgImage) {
           ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
-          // Soft dark mask overlay for readability
-          ctx.fillStyle = "rgba(8, 9, 12, 0.45)";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
         } else {
           ctx.fillStyle = "#0f1015";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1870,7 +1865,7 @@
       }
 
       // Trigger DBZ Power based on coins
-      function triggerGiftPower(player, coins) {
+      function triggerGiftPower(player, coins, showText = true) {
         const username = player.username;
         const targets = (player.team === 1 ? playersTeam2 : playersTeam1).filter(t => !t.isDead);
         
@@ -1896,7 +1891,7 @@
 
         // 1C - LLUVIA DE COHETES
         if (coins === 1) {
-          createDamageText(player.x, player.y - 25, "¡LLUVIA DE COHETES! 🚀", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡LLUVIA DE COHETES! 🚀", true);
           for (let i = 0; i < 10; i++) {
             setTimeout(() => {
               if (player.isDead) return;
@@ -1909,7 +1904,7 @@
         }
         // 5C - FUEGO DE FURIA
         else if (coins >= 5 && coins < 10) {
-          createDamageText(player.x, player.y - 25, "¡FUEGO DE FURIA! 🔥", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡FUEGO DE FURIA! 🔥", true);
           for (let i = 0; i < 5; i++) {
             setTimeout(() => {
               if (player.isDead) return;
@@ -1923,11 +1918,11 @@
         // 10C - EMPUJON NORMAL
         else if (coins >= 10 && coins < 20) {
           projectiles.push(new Projectile(player.x, player.y, target, player.team, 'push', 45, player, 10));
-          createDamageText(player.x, player.y - 25, "¡EMPUJÓN NORMAL! 💨", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡EMPUJÓN NORMAL! 💨", true);
         }
         // 20C - EMPUJON TRIPLE
         else if (coins >= 20 && coins < 30) {
-          createDamageText(player.x, player.y - 25, "¡EMPUJÓN TRIPLE! 💨💨💨", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡EMPUJÓN TRIPLE! 💨💨💨", true);
           for (let i = 0; i < 3; i++) {
             setTimeout(() => {
               if (player.isDead) return;
@@ -1941,7 +1936,7 @@
         // 30C - RAYOS ELECTROCUTADORES
         else if (coins >= 30 && coins < 100) {
           projectiles.push(new Projectile(player.x, player.y, target, player.team, 'lightning', 0, player, 30));
-          createDamageText(player.x, player.y - 25, "¡TORMENTA ELÉCTRICA! ⚡", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡TORMENTA ELÉCTRICA! ⚡", true);
         }
         // 100C - TELEPORTACIÓN ELÉCTRICA (Teletransporte + Triple Rayo)
         else if (coins >= 100 && coins < 199) {
@@ -1951,7 +1946,7 @@
             : (canvas.width / 2 + 45 + Math.random() * (canvas.width / 2 - 85));
           player.y = 40 + Math.random() * (canvas.height - 80);
           createExplosion(player.x, player.y, '#00ffcc', 20);
-          createDamageText(player.x, player.y - 25, "¡TELEPORTACIÓN ELÉCTRICA! 🌀⚡", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡TELEPORTACIÓN ELÉCTRICA! 🌀⚡", true);
           
           for (let i = 0; i < 3; i++) {
             setTimeout(() => {
@@ -1966,12 +1961,12 @@
         // 199C - KIESAN (Destructo Disc)
         else if (coins >= 199 && coins < 299) {
           projectiles.push(new Projectile(player.x, player.y, target, player.team, 'kiesan', 0, player, 199));
-          createDamageText(player.x, player.y - 25, "¡KIESAN! 📀", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡KIESAN! 📀", true);
         }
         // 299C - MAKANKOSAPO MAS EMPUJON AL 5
         else if (coins >= 299 && coins < 500) {
           projectiles.push(new Projectile(player.x, player.y, target, player.team, 'makankosapo', 120, player, 299));
-          createDamageText(player.x, player.y - 25, "¡MAKANKOSAPO! 🌀⚡", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡MAKANKOSAPO! 🌀⚡", true);
         }
         // 500C - KAMEHAMEHA COMBINADO (Teletransporte en ambos ejes + Kamehameha + Ráfaga Combo de Todos los Poderes Menores)
         else if (coins >= 500 && coins < 1000) {
@@ -1983,7 +1978,7 @@
           createExplosion(player.x, player.y, '#00ffcc', 20);
           
           projectiles.push(new Projectile(player.x, player.y, target, player.team, 'kamehameha', 0, player, 500));
-          createDamageText(player.x, player.y - 25, "¡KAMEHAMEHA COMBINADO! 🌊🌀⚡", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡KAMEHAMEHA COMBINADO! 🌊🌀⚡", true);
           
           // 1. Rocket (1300ms)
           setTimeout(() => {
@@ -2042,7 +2037,7 @@
         // 1000C - GENKIDAMA MAS KAMEHAMEHA Y TODOS LOS PODERES
         else if (coins >= 1000) {
           projectiles.push(new Projectile(player.x, player.y, target, player.team, 'genkidama', 0, player, 1000));
-          createDamageText(player.x, player.y - 25, "¡GENKIDAMA! 🔮✨", true);
+          if (showText) createDamageText(player.x, player.y - 25, "¡GENKIDAMA! 🔮✨", true);
           
           const chainPowers = ['bolitak', 'fire', 'push', 'lightning', 'kiesan', 'makankosapo', 'kamehameha'];
           chainPowers.forEach((pwr, idx) => {
@@ -2067,10 +2062,28 @@
         }
       }
 
+      function triggerGiftPowerCombo(player, singleGiftCoins, comboCount) {
+        if (comboCount > 1) {
+          createDamageText(player.x, player.y - 40, `COMBO x${comboCount} 🔥`, true);
+        }
+        for (let i = 0; i < comboCount; i++) {
+          setTimeout(() => {
+            if (player && !player.isDead) {
+              triggerGiftPower(player, singleGiftCoins, i === 0);
+            }
+          }, i * 250);
+        }
+      }
+
       // Gift Event Handler
       function handleGiftEvent(event) {
+        // Ignorar eventos intermedios de combo, esperar a que termine
+        if (event.repeatEnd === false) return;
+
         const username = event.uniqueId;
-        const coins = (event.diamondCount || 1) * (event.repeatCount || 1);
+        const singleGiftCoins = event.diamondCount || 1;
+        const comboCount = event.repeatCount || 1;
+        const totalCoins = singleGiftCoins * comboCount;
         
         let player = playersTeam1.find(p => p.username === username) || 
                      playersTeam2.find(p => p.username === username);
@@ -2085,10 +2098,10 @@
             appendSystemMsg(`¡Guerrero @${username} ha resucitado con un Regalo! 💫`);
           }
           
-          player.coinsSent += coins;
+          player.coinsSent += totalCoins;
           player.radius = 12 + Math.min(28, player.coinsSent * 1.2);
           
-          const hpBonus = coins * 10;
+          const hpBonus = totalCoins * 10;
           player.maxHp += hpBonus;
           player.hp = Math.min(player.maxHp, player.hp + hpBonus);
  
@@ -2096,7 +2109,7 @@
           createDamageText(player.x, player.y - 12, `+${hpBonus} MAX HP!`);
           appendSystemMsg(`¡@${username} envió ${event.giftName}! Vida: ${player.hp}/${player.maxHp}`);
           
-          triggerGiftPower(player, coins);
+          triggerGiftPowerCombo(player, singleGiftCoins, comboCount);
         } else {
           // Auto-join to smaller team
           const team = playersTeam1.length <= playersTeam2.length ? 1 : 2;
@@ -2105,16 +2118,16 @@
           const list = team === 1 ? playersTeam1 : playersTeam2;
           const newPlayer = list.find(p => p.username === username);
           if (newPlayer) {
-            newPlayer.coinsSent = coins;
-            newPlayer.radius = 12 + Math.min(28, coins * 1.2);
-            const hpBonus = coins * 10;
+            newPlayer.coinsSent = totalCoins;
+            newPlayer.radius = 12 + Math.min(28, totalCoins * 1.2);
+            const hpBonus = totalCoins * 10;
             newPlayer.maxHp += hpBonus;
             newPlayer.hp = newPlayer.maxHp;
  
             createExplosion(newPlayer.x, newPlayer.y, '#ffd700', 15);
             createDamageText(newPlayer.x, newPlayer.y - 12, `¡JEFE +${hpBonus} HP!`);
             
-            triggerGiftPower(newPlayer, coins);
+            triggerGiftPowerCombo(newPlayer, singleGiftCoins, comboCount);
           }
         }
         sendDashboardState();
@@ -2306,6 +2319,7 @@
           return;
         }
         const coins = parseInt(simCoinsInput.value) || 5;
+        const combo = parseInt(document.getElementById("sim-combo").value) || 1;
         
         // Simular evento de regalo de TikTok Live
         handleGiftEvent({
@@ -2315,7 +2329,8 @@
           profilePictureUrl: "",
           giftName: `RegaloSimulado_${coins}Monedas`,
           diamondCount: coins,
-          repeatCount: 1
+          repeatCount: combo,
+          repeatEnd: true
         });
         
         simUserInput.value = "";
@@ -2382,9 +2397,10 @@
           simUserInput.value = user;
           if (team === 1) simT1Btn.click(); else simT2Btn.click();
         },
-        simulateGift: (user, coins) => {
+        simulateGift: (user, coins, combo) => {
           simUserInput.value = user;
           simCoinsInput.value = coins;
+          document.getElementById("sim-combo").value = combo || 1;
           simGiftBtn.click();
         },
         updateTeamNames: (t1, t2) => {

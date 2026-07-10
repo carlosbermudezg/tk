@@ -115,7 +115,8 @@ function normalizeGift(data: any) {
     giftPictureUrl: imgUrl,
     repeatCount: repeatCount,
     describe: describe,
-    diamondCount: diamondCount
+    diamondCount: diamondCount,
+    repeatEnd: data.repeatEnd !== undefined ? data.repeatEnd : (data.gift?.repeat_end !== undefined ? data.gift.repeat_end : true)
   };
 }
 
