@@ -1287,23 +1287,6 @@ body {
   flex-grow: 1;
 }
 
-/* Contenido interno de paneles de stats/perfil */
-.launcher-panel > section,
-.launcher-panel .panel-content {
-  padding: 24px;
-}
-
-/* Columna izquierda de juegos */
-.left-column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
-}
-
 .launcher-body {
   padding: 40px 20px;
   display: flex;

@@ -2,6 +2,30 @@ import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import { TikTokLiveClient, EventType } from "piratetok-live-js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ─── Configuración de Licencia (prioridad: env > config.local.json > config.json) ───
+let CENTRAL_API_URL = process.env.CENTRAL_API_URL || "http://localhost:4000";
+let API_KEY = process.env.CENTRAL_API_KEY || "";
+
+if (!API_KEY) {
+  const configPath = path.join(__dirname, "config.json");
+  const localConfigPath = path.join(__dirname, "config.local.json");
+  let cfg: any = {};
+  if (fs.existsSync(configPath)) {
+    try { cfg = { ...cfg, ...JSON.parse(fs.readFileSync(configPath, "utf-8")) }; } catch {}
+  }
+  if (fs.existsSync(localConfigPath)) {
+    try { cfg = { ...cfg, ...JSON.parse(fs.readFileSync(localConfigPath, "utf-8")) }; } catch {}
+  }
+  CENTRAL_API_URL = cfg.centralApiUrl || CENTRAL_API_URL;
+  API_KEY = cfg.apiKey || "";
+}
 
 interface QueueUser {
   username: string;
@@ -13,11 +37,293 @@ let queue: QueueUser[] = [];
 let activeConnection: TikTokLiveClient | null = null;
 let currentUsername: string | null = null;
 
+// --- Control de Sesión y Métricas ---
+let currentSessionId: number | null = null;
+let sessionInterval: NodeJS.Timeout | null = null;
+
+let sessionDiamonds = 0;
+let sessionLikes = 0;
+let sessionFollowers = 0;
+let sessionShares = 0;
+
+function triggerLogout(reason: string = "Sesión cerrada") {
+  console.log(`⏹️ [Logout] ${reason}`);
+  if (process.send) {
+    process.send({ type: "logout", reason });
+  }
+}
+
+async function checkLicenseActive(): Promise<boolean> {
+  if (!API_KEY) return false;
+  try {
+    const res = await fetch(`${CENTRAL_API_URL}/api/license/validate`, {
+      headers: { "x-api-key": API_KEY }
+    });
+    if (res.status === 401) {
+      triggerLogout("Licencia revocada o inactiva");
+      if (activeConnection) {
+        try { activeConnection.disconnect(); } catch {}
+        activeConnection = null;
+        currentUsername = null;
+        io.emit("status-update", { connected: false, username: null });
+      }
+      return false;
+    }
+    return res.ok;
+  } catch (err) {
+    console.warn("⚠️ No se pudo verificar la licencia con el servidor central:", err);
+    return true;
+  }
+}
+
+async function syncMetricsToCentral(sessId: number) {
+  if (!API_KEY) return;
+  const diamonds = sessionDiamonds;
+  const likes = sessionLikes;
+  const followers = sessionFollowers;
+  const shares = sessionShares;
+
+  if (diamonds === 0 && likes === 0 && followers === 0 && shares === 0) return;
+
+  sessionDiamonds -= diamonds;
+  sessionLikes -= likes;
+  sessionFollowers -= followers;
+  sessionShares -= shares;
+
+  try {
+    const res = await fetch(`${CENTRAL_API_URL}/api/sessions/${sessId}/metrics`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY
+      },
+      body: JSON.stringify({
+        diamonds,
+        likes,
+        newFollowers: followers,
+        shares
+      })
+    });
+    if (res.status === 401) {
+      triggerLogout("Licencia revocada");
+      if (activeConnection) {
+        try { activeConnection.disconnect(); } catch {}
+        activeConnection = null;
+        currentUsername = null;
+        io.emit("status-update", { connected: false, username: null });
+      }
+      return;
+    }
+    if (!res.ok) {
+      console.error(`❌ Falló la sincronización de métricas para sesión ${sessId}:`, res.statusText);
+      sessionDiamonds += diamonds;
+      sessionLikes += likes;
+      sessionFollowers += followers;
+      sessionShares += shares;
+    }
+  } catch (err) {
+    console.error(`❌ Error de red al sincronizar métricas para sesión ${sessId}:`, err);
+    sessionDiamonds += diamonds;
+    sessionLikes += likes;
+    sessionFollowers += followers;
+    sessionShares += shares;
+  }
+}
+
+function startMetricsSyncInterval() {
+  if (sessionInterval) clearInterval(sessionInterval);
+  sessionInterval = setInterval(() => {
+    if (currentSessionId) {
+      syncMetricsToCentral(currentSessionId);
+    }
+  }, 10000);
+}
+
+async function startCentralSession() {
+  if (!API_KEY) return;
+  try {
+    const res = await fetch(`${CENTRAL_API_URL}/api/sessions/start`, {
+      method: "POST",
+      headers: { "x-api-key": API_KEY }
+    });
+    if (res.status === 401) {
+      triggerLogout("Licencia revocada");
+      if (activeConnection) {
+        try { activeConnection.disconnect(); } catch {}
+        activeConnection = null;
+        currentUsername = null;
+        io.emit("status-update", { connected: false, username: null });
+      }
+      return;
+    }
+    if (res.ok) {
+      const data = (await res.json()) as any;
+      currentSessionId = data.sessionId;
+      console.log(`▶️ Sesión registrada en servidor central. ID: ${currentSessionId}`);
+      sessionDiamonds = 0;
+      sessionLikes = 0;
+      sessionFollowers = 0;
+      sessionShares = 0;
+      startMetricsSyncInterval();
+    } else {
+      console.error("❌ No se pudo iniciar sesión en servidor central:", res.statusText);
+    }
+  } catch (err) {
+    console.error("❌ Error al conectar con servidor central para iniciar sesión:", err);
+  }
+}
+
+async function endCentralSession() {
+  if (!currentSessionId || !API_KEY) return;
+  const sessId = currentSessionId;
+  currentSessionId = null;
+  if (sessionInterval) {
+    clearInterval(sessionInterval);
+    sessionInterval = null;
+  }
+
+  await syncMetricsToCentral(sessId);
+
+  try {
+    const res = await fetch(`${CENTRAL_API_URL}/api/sessions/${sessId}/end`, {
+      method: "POST",
+      headers: { "x-api-key": API_KEY }
+    });
+    if (res.status === 401) {
+      triggerLogout("Licencia revocada");
+      if (activeConnection) {
+        try { activeConnection.disconnect(); } catch {}
+        activeConnection = null;
+        currentUsername = null;
+        io.emit("status-update", { connected: false, username: null });
+      }
+      return;
+    }
+    if (res.ok) {
+      console.log(`⏹️ Sesión ${sessId} finalizada en servidor central.`);
+    } else {
+      console.error(`❌ No se pudo finalizar sesión ${sessId} en servidor central:`, res.statusText);
+    }
+  } catch (err) {
+    console.error(`❌ Error al conectar con servidor central para finalizar sesión ${sessId}:`, err);
+  }
+}
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+app.use(express.json());
 app.use(express.static("public"));
+
+// Sincronizar API Key cuando el usuario inicia sesión con otra cuenta
+app.post("/api/local/login-sync", (req, res) => {
+  const { apiKey } = req.body;
+  API_KEY = apiKey || "";
+  console.log("🔑 [LoginSync] Sincronizada API Key localmente");
+  res.json({ ok: true });
+});
+
+// Cerrar sesión
+app.post("/api/local/logout", async (req, res) => {
+  triggerLogout("Sesión cerrada por el creador");
+  if (activeConnection) {
+    try {
+      activeConnection.disconnect();
+    } catch (e) {}
+    activeConnection = null;
+  }
+  await endCentralSession();
+  API_KEY = "";
+  res.json({ ok: true });
+});
+
+// Apagado limpio desde Electron
+app.post("/api/local/shutdown", async (req, res) => {
+  console.log("🔌 [Shutdown] Recibida orden de apagado limpio. Finalizando conexiones...");
+  if (activeConnection) {
+    try {
+      activeConnection.disconnect();
+    } catch (e) {}
+    activeConnection = null;
+  }
+  await endCentralSession();
+  res.json({ ok: true });
+  setTimeout(() => {
+    process.exit(0);
+  }, 500);
+});
+
+// Proxy a central-server para obtener estadísticas del creador
+app.get("/api/local/creator/stats", async (req, res) => {
+  if (!API_KEY) {
+    return res.status(401).json({ error: "No hay licencia o API Key activa" });
+  }
+  try {
+    const response = await fetch(`${CENTRAL_API_URL}/api/creator/stats`, {
+      headers: { "x-api-key": API_KEY }
+    });
+    if (response.status === 401) {
+      triggerLogout("Licencia revocada");
+      if (activeConnection) {
+        try { activeConnection.disconnect(); } catch {}
+        activeConnection = null;
+        currentUsername = null;
+        io.emit("status-update", { connected: false, username: null });
+      }
+      return res.status(401).json({ error: "Licencia revocada o inactiva" });
+    }
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Error del servidor central" });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Proxy a central-server para actualizar perfil del creador
+app.put("/api/local/creator/profile", async (req, res) => {
+  if (!API_KEY) {
+    return res.status(401).json({ error: "No hay licencia o API Key activa" });
+  }
+  try {
+    const response = await fetch(`${CENTRAL_API_URL}/api/creator/profile`, {
+      method: "PUT",
+      headers: { 
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY 
+      },
+      body: JSON.stringify(req.body)
+    });
+    if (response.status === 401) {
+      triggerLogout("Licencia revocada");
+      if (activeConnection) {
+        try { activeConnection.disconnect(); } catch {}
+        activeConnection = null;
+        currentUsername = null;
+        io.emit("status-update", { connected: false, username: null });
+      }
+      return res.status(401).json({ error: "Licencia revocada o inactiva" });
+    }
+    if (!response.ok) {
+      const rawText = await response.clone().text();
+      console.error("[Proxy Profile Error]", response.status, rawText);
+      let errorText = "Error del servidor central";
+      try {
+        const errJson = JSON.parse(rawText);
+        errorText = errJson.error || errorText;
+      } catch {}
+      return res.status(response.status).json({ error: errorText });
+    }
+    const data = await response.json();
+    res.json(data);
+  } catch (err: any) {
+    console.error("[Proxy Profile Connection Error]", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // Helpers para la cola de pelea
 function isUserInQueue(username: string): boolean {
@@ -177,10 +483,17 @@ function setupTikTokListeners(conn: TikTokLiveClient): void {
   conn.on(EventType.connected, (data: any) => {
     console.log(`✅ Conectado exitosamente al live de ${currentUsername} (Room ID: ${data.roomId})`);
     io.emit("status-update", { connected: true, username: currentUsername });
+    startCentralSession();
+  });
+
+  conn.on(EventType.reconnecting, (data: any) => {
+    console.warn(`🔄 Re-conectando con ${currentUsername} (Intento ${data.attempt}/${data.maxRetries}, retraso: ${data.delayMs}ms, bloqueado: ${data.deviceBlocked})`);
+    io.emit("status-update", { connected: false, username: currentUsername, connecting: true });
   });
 
   conn.on(EventType.chat, (data: any) => {
     const normalized = normalizeChat(data);
+    console.log(`💬 [Chat] @${normalized.uniqueId}: ${normalized.comment}`);
     io.emit("live-event", normalized);
 
     // Si escribe "pelea", se agrega a la cola
@@ -194,11 +507,20 @@ function setupTikTokListeners(conn: TikTokLiveClient): void {
   });
 
   conn.on(EventType.gift, (data: any) => {
-    io.emit("live-event", normalizeGift(data));
+    const normalized = normalizeGift(data);
+    console.log(`🎁 [Gift] @${normalized.uniqueId} envió ${normalized.giftName} x${normalized.repeatCount} (${normalized.diamondCount} diamantes)`);
+    io.emit("live-event", normalized);
+
+    if (normalized.repeatEnd) {
+      sessionDiamonds += (normalized.diamondCount * normalized.repeatCount);
+    }
   });
 
   conn.on(EventType.like, (data: any) => {
-    io.emit("live-event", normalizeLike(data));
+    const normalized = normalizeLike(data);
+    console.log(`❤️ [Like] @${normalized.uniqueId} dio ${normalized.likeCount} likes`);
+    io.emit("live-event", normalized);
+    sessionLikes += (normalized.likeCount || 1);
   });
 
   conn.on(EventType.join, (data: any) => {
@@ -207,10 +529,12 @@ function setupTikTokListeners(conn: TikTokLiveClient): void {
 
   conn.on(EventType.follow, (data: any) => {
     io.emit("live-event", normalizeFollow(data));
+    sessionFollowers += 1;
   });
 
   conn.on(EventType.share, (data: any) => {
     io.emit("live-event", normalizeShare(data));
+    sessionShares += 1;
   });
 
   conn.on(EventType.disconnected, () => {
@@ -218,6 +542,7 @@ function setupTikTokListeners(conn: TikTokLiveClient): void {
     activeConnection = null;
     currentUsername = null;
     io.emit("status-update", { connected: false, username: null });
+    endCentralSession();
   });
 
   conn.on("error", (err: any) => {
@@ -241,6 +566,12 @@ io.on("connection", (socket: Socket) => {
   socket.on("connect-tiktok", async ({ username }: { username: string }) => {
     if (!username) {
       return socket.emit("error-message", { message: "Se requiere un nombre de usuario" });
+    }
+
+    // Validar licencia activa antes de proceder con el live
+    const licenseValid = await checkLicenseActive();
+    if (!licenseValid) {
+      return socket.emit("error-message", { message: "Tu licencia ha sido revocada o está inactiva." });
     }
 
     try {

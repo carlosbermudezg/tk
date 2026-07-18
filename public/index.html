@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TikTok Live Event Dashboard 🚀</title>
+  <title>TikTok Games Launcher 🚀</title>
   <!-- Google Fonts: Outfit & Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
   <div class="app-container">
     <!-- Header -->
@@ -42,6 +46,37 @@
       </div>
     </header>
 
+    <!-- Welcome Banner -->
+    <div class="welcome-banner glass-panel"
+      style="margin: 0 0 20px 0; padding: 15px 24px; display: flex; align-items: center; justify-content: space-between; border-radius: 14px; background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(6,182,212,0.1)); border: 1px solid rgba(255,255,255,0.08);">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div
+          style="width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #06b6d4); display: flex; align-items: center; justify-content: center; font-size: 20px;">
+          👤</div>
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700; font-family: 'Outfit', sans-serif; margin: 0;">¡Hola, <span
+              id="welcome-name" class="gradient-text">Creador</span>! 👋</h2>
+          <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0 0;">Bienvenido de vuelta a tu centro de
+            control.</p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="font-size: 13px; font-weight: 600; color: #f1f5f9; margin-right: 4px;" id="welcome-email">...</div>
+        <button class="tab-btn" data-target="stats-game-tab" onclick="loadCreatorStats()"
+          style="padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); background: rgba(16,185,129,0.08); color: #10b981; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+          <i class="fas fa-chart-bar"></i> Mis Estadísticas
+        </button>
+        <button class="tab-btn" data-target="profile-game-tab" onclick="resetProfileForm()"
+          style="padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid rgba(255,255,255,0.1); background: rgba(249,115,22,0.08); color: #f97316; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+          <i class="fas fa-user-circle"></i> Mi Perfil
+        </button>
+        <button onclick="logoutSession()" class="btn btn-secondary"
+          style="padding: 8px 14px; border-radius: 8px; font-size: 12px; background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+          <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </button>
+      </div>
+    </div>
+
     <!-- Layout Principal -->
     <main class="main-layout">
       <!-- Columna Izquierda/Centro: Juego y Chat -->
@@ -62,17 +97,15 @@
           <section class="battle-panel glass-panel launcher-panel">
             <div class="section-header">
               <h2><i class="fas fa-play-circle game-icon-color"></i> Lanzador de Batalla Real</h2>
-              <div class="battle-stats">
-                <span class="stat stat-blue">Equipo 1: <strong id="team1-count">0</strong></span>
-                <span class="stat stat-pink">Equipo 2: <strong id="team2-count">0</strong></span>
-              </div>
+
             </div>
             <div class="launcher-body">
               <div class="launcher-info-card">
                 <div class="launcher-icon"><i class="fas fa-gamepad text-cyan"></i></div>
                 <div class="launcher-desc">
                   <h3>Batalla Real 1 vs 2 🥊</h3>
-                  <p>Los espectadores se unen al live y eligen equipo escribiendo "1" o "2" en el chat. Los personajes creados combaten de manera autónoma con animaciones premium.</p>
+                  <p>Los espectadores se unen al live y eligen equipo escribiendo "1" o "2" en el chat. Los personajes
+                    creados combaten de manera autónoma con animaciones premium.</p>
                   <p class="launcher-note">Ideal para capturar esta ventana por separado en OBS para tu stream.</p>
                 </div>
               </div>
@@ -99,12 +132,15 @@
                 <div class="launcher-icon"><i class="fas fa-cubes text-purple"></i></div>
                 <div class="launcher-desc">
                   <h3>3D Battle Royale (Campal) ⚔️</h3>
-                  <p>Los espectadores se unen escribiendo "go" en el chat. Sus fotos de perfil se pintarán en cubos 3D y lucharán todos contra todos en una arena de Three.js.</p>
-                  <p class="launcher-note">No olvides presionar 'C' o hacer doble clic en el juego para abrir su panel de controles.</p>
+                  <p>Los espectadores se unen escribiendo "go" en el chat. Sus fotos de perfil se pintarán en cubos 3D y
+                    lucharán todos contra todos en una arena de Three.js.</p>
+                  <p class="launcher-note">No olvides presionar 'C' o hacer doble clic en el juego para abrir su panel
+                    de controles.</p>
                 </div>
               </div>
               <div class="launcher-actions">
-                <button id="launch-royale3d-btn" class="btn btn-primary btn-lg" style="background: linear-gradient(135deg, #b92ffc, #00f2fe);">
+                <button id="launch-royale3d-btn" class="btn btn-primary btn-lg"
+                  style="background: linear-gradient(135deg, #b92ffc, #00f2fe);">
                   <i class="fas fa-external-link-alt"></i> Lanzar Juego 3D 🚀
                 </button>
                 <button id="open-royale3d-controls-btn" class="btn btn-secondary btn-lg" style="margin-left: 10px;">
@@ -118,46 +154,100 @@
           </section>
         </div>
 
-        <!-- Feed en Vivo -->
-        <section class="chat-section glass-panel">
-          <div class="section-header">
-            <h2><i class="fas fa-comments chat-icon-color"></i> Feed en Vivo</h2>
-            <div class="feed-stats">
-              <span id="viewer-count-display" class="stat"><i class="fas fa-eye"></i> Live</span>
+        <!-- Contenido de Pestaña: Mis Estadísticas -->
+        <div id="stats-game-tab" class="tab-content hidden">
+          <section class="battle-panel glass-panel launcher-panel">
+            <div class="section-header">
+              <h2><i class="fas fa-chart-bar text-green"></i> Mis Estadísticas</h2>
             </div>
-          </div>
-          <div id="live-chat-feed" class="chat-feed-container">
-            <div class="system-msg">
-              <span class="time">00:00</span>
-              <span class="text">Bienvenido al Dashboard. Conéctate a un live y escribe "1" o "2" en el chat de TikTok para unirte al campo de batalla.</span>
+            <div style="padding:24px; display:flex; gap:16px; flex-wrap:wrap; margin-bottom:0;">
+              <div class="glass-panel"
+                style="flex:1; min-width:150px; padding:20px; border-radius:14px; text-align:center;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">💎 Diamantes Totales</div>
+                <div id="stats-diamonds"
+                  style="font-size:32px; font-weight:800; background:linear-gradient(135deg,#7c3aed,#06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                  —</div>
+              </div>
+              <div class="glass-panel"
+                style="flex:1; min-width:150px; padding:20px; border-radius:14px; text-align:center;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">💵 USD Generado</div>
+                <div id="stats-usd" style="font-size:32px; font-weight:800; color:#10b981;">—</div>
+              </div>
+              <div class="glass-panel"
+                style="flex:1; min-width:150px; padding:20px; border-radius:14px; text-align:center;">
+                <div style="font-size:12px; color:var(--text-muted); margin-bottom:8px;">⏳ Regalías Pendientes</div>
+                <div id="stats-pending" style="font-size:32px; font-weight:800; color:#f59e0b;">—</div>
+              </div>
             </div>
-          </div>
-        </section>
+            <div style="padding:0 24px 24px; overflow-x:auto;">
+              <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                <thead>
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Fecha</th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Diamantes</th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">USD</th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Regalías</th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Estado</th>
+                  </tr>
+                </thead>
+                <tbody id="creator-sessions-tbody">
+                  <tr><td colspan="5" style="padding:20px; text-align:center; color:var(--text-muted);">Cargando...</td></tr>
+                </tbody>
+              </table>
+              <!-- Paginación -->
+              <div id="sessions-pagination" style="display:flex; align-items:center; justify-content:space-between; padding:14px 4px 0;">
+                <button id="sessions-prev-btn" onclick="changeSessionsPage(-1)" style="padding:7px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#f1f5f9; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;">
+                  ← Anterior
+                </button>
+                <span id="sessions-page-info" style="font-size:12px; color:var(--text-muted);">Página 1 de 1</span>
+                <button id="sessions-next-btn" onclick="changeSessionsPage(1)" style="padding:7px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#f1f5f9; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;">
+                  Siguiente →
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Contenido de Pestaña: Mi Perfil -->
+        <div id="profile-game-tab" class="tab-content hidden">
+          <section class="battle-panel glass-panel launcher-panel">
+            <div class="section-header">
+              <h2><i class="fas fa-user-circle text-orange"></i> Mi Perfil</h2>
+            </div>
+            <div style="padding:24px; max-width:440px; display:flex; flex-direction:column; gap:16px;">
+              <div>
+                <label
+                  style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Nombre
+                  de Display</label>
+                <input id="profile-name-input" type="text" placeholder="Tu nombre público"
+                  style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:11px 14px; color:#f1f5f9; font-size:14px; outline:none;">
+              </div>
+              <div>
+                <label
+                  style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Correo</label>
+                <input id="profile-email-input" type="email" placeholder="tu@correo.com" disabled
+                  style="width:100%; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:11px 14px; color:#64748b; font-size:14px; outline:none; cursor:not-allowed;">
+              </div>
+              <div>
+                <label
+                  style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; display:block; margin-bottom:6px;">Nueva
+                  Contraseña <span style="color:#334155;">(opcional)</span></label>
+                <input id="profile-password-input" type="password" placeholder="Mínimo 6 caracteres"
+                  style="width:100%; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:11px 14px; color:#f1f5f9; font-size:14px; outline:none;">
+              </div>
+              <button onclick="updateProfile()" class="btn btn-primary"
+                style="padding:13px; border-radius:10px; font-size:15px; font-weight:700;"><i class="fas fa-save"></i>
+                Guardar Cambios</button>
+              <div id="profile-success-msg" style="display:none; color:#10b981; font-size:13px; font-weight:600;"><i
+                  class="fas fa-check-circle"></i> Perfil actualizado correctamente.</div>
+              <div id="profile-error-msg" style="display:none; color:#ef4444; font-size:13px; font-weight:600;"></div>
+            </div>
+          </section>
+        </div>
       </div>
 
       <!-- Columna Derecha: Scoreboard de Batalla y Regalos -->
       <section class="side-column">
-        <!-- Sub-panel: Marcador de Jugadores -->
-        <div class="scoreboard-panel glass-panel">
-          <div class="section-header">
-            <h2><i class="fas fa-trophy trophy-icon-color"></i> Tabla de Guerreros</h2>
-          </div>
-          <div class="team-lists-container">
-            <div class="team-list-column">
-              <h3 class="team-title-t1">Equipo 1 (Escribe 1)</h3>
-              <div id="t1-players-list" class="team-players-list">
-                <div class="empty-list-msg">Sin guerreros</div>
-              </div>
-            </div>
-            <div class="team-list-column">
-              <h3 class="team-title-t2">Equipo 2 (Escribe 2)</h3>
-              <div id="t2-players-list" class="team-players-list">
-                <div class="empty-list-msg">Sin guerreros</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Sub-panel: Regalos Recibidos -->
         <div class="gifts-panel glass-panel">
           <div class="section-header">
@@ -173,25 +263,7 @@
       </section>
     </main>
 
-    <!-- Overlay de Gran Regalo Animado -->
-    <div id="big-gift-overlay" class="gift-overlay hidden">
-      <div class="gift-announcement-card glass-panel animate-gift">
-        <div class="sparkles"></div>
-        <div class="announcement-header">🎉¡SÚPER REGALO!🎉</div>
-        <div class="gift-sender-avatar">
-          <img id="overlay-user-avatar" src="" alt="Avatar">
-        </div>
-        <div class="announcement-body">
-          <h4 id="overlay-user-name">Usuario</h4>
-          <p>envió un</p>
-          <h3 id="overlay-gift-name" class="gradient-text">Regalo Especial</h3>
-          <div class="gift-display">
-            <img id="overlay-gift-image" src="" alt="Gift">
-            <span class="multiplier" id="overlay-gift-count">x1</span>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- Contenedor para Corazones Flotantes (Likes) -->
     <div id="hearts-container" class="hearts-container"></div>
@@ -234,7 +306,7 @@
           }
           // Guardar en localStorage
           localStorage.setItem("tiktok_username", username);
-          
+
           socket.emit("connect-tiktok", { username });
         }
       });
@@ -244,9 +316,9 @@
       // Status Update
       socket.on("status-update", (status) => {
         isConnected = status.connected;
-        
+
         statusIndicator.className = "status-badge";
-        
+
         if (status.connecting) {
           statusIndicator.classList.add("connecting");
           statusText.textContent = "Conectando...";
@@ -259,7 +331,7 @@
           connectBtn.disabled = false;
           connectBtn.className = "btn btn-danger";
           connectBtn.innerHTML = '<i class="fas fa-unlink"></i> Desconectar';
-          
+
           appendSystemMsg(`Conectado al stream de @${status.username}`);
         } else {
           statusIndicator.classList.add("disconnected");
@@ -268,7 +340,7 @@
           connectBtn.disabled = false;
           connectBtn.className = "btn btn-primary";
           connectBtn.innerHTML = '<i class="fas fa-plug"></i> Conectar';
-          
+
           if (status.username === null && isConnected) {
             appendSystemMsg(`Desconectado del live`);
           }
@@ -288,7 +360,7 @@
 
       // Live Events Stream
       socket.on("live-event", (event) => {
-        switch(event.type) {
+        switch (event.type) {
           case "chat":
             appendChatMessage(event);
             // Check if comment is exactly "1" or "2" to join teams
@@ -363,16 +435,16 @@
 
       // ================= 3D BATTLE ROYALE =================
       let game3dWindow = null;
-      
+
       const launch3dBtn = document.getElementById('launch-royale3d-btn');
       const open3dControlsBtn = document.getElementById('open-royale3d-controls-btn');
       const windowStatus3d = document.getElementById('window-status-3d');
-      
+
       launch3dBtn.addEventListener('click', () => {
         if (!game3dWindow || game3dWindow.closed) {
           game3dWindow = window.open('royale3d.html', 'Royale3D', 'width=1280,height=720,resizable=yes');
           updateWindowStatus3d(true);
-          
+
           const checkClosed = setInterval(() => {
             if (game3dWindow.closed) {
               clearInterval(checkClosed);
@@ -422,7 +494,7 @@
         list.forEach(p => {
           const div = document.createElement("div");
           div.className = `team-player-row ${p.isDead ? 'dead' : ''}`;
-          
+
           div.innerHTML = `
             <img src="${p.avatarUrl || 'https://www.tiktok.com/favicon.ico'}" alt="Avatar">
             <span class="team-player-name" title="${p.nickname}">${p.nickname}</span>
@@ -434,18 +506,29 @@
         });
       }
 
-      // Pestañas Switching Logic
-      const tabBtns = document.querySelectorAll(".game-tabs-nav .tab-btn");
+      // Pestañas Switching Logic — aplica a TODOS los tab-btn (nav + banner)
+      const tabBtns = document.querySelectorAll(".tab-btn[data-target]");
       const tabContents = document.querySelectorAll(".tab-content");
 
       tabBtns.forEach(btn => {
         btn.addEventListener("click", () => {
-          tabBtns.forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-
-          tabContents.forEach(content => content.classList.add("hidden"));
           const targetId = btn.getAttribute("data-target");
-          document.getElementById(targetId).classList.remove("hidden");
+
+          // Mostrar panel target, ocultar el resto
+          tabContents.forEach(content => {
+            if (content.id === targetId) {
+              content.classList.remove("hidden");
+              content.classList.add("active");
+            } else {
+              content.classList.remove("active");
+              content.classList.add("hidden");
+            }
+          });
+
+          // Marcar activo el botón pulsado en todos los tab-btn
+          tabBtns.forEach(b => {
+            b.classList.toggle("active", b.getAttribute("data-target") === targetId);
+          });
         });
       });
 
@@ -456,6 +539,7 @@
       }
 
       function appendSystemMsg(text, type = "system-msg") {
+        if (!liveChatFeed) return;
         const div = document.createElement("div");
         div.className = type;
         div.innerHTML = `<span class="time">${getTimeString()}</span> <span class="text">${text}</span>`;
@@ -464,9 +548,10 @@
       }
 
       function appendSystemFeedMsg(event, text, iconClass) {
+        if (!liveChatFeed) return;
         const div = document.createElement("div");
         div.className = "feed-sys-event animate-fade-in";
-        
+
         const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
         div.innerHTML = `
           <span class="time">${getTimeString()}</span>
@@ -479,9 +564,10 @@
       }
 
       function appendChatMessage(event) {
+        if (!liveChatFeed) return;
         const div = document.createElement("div");
         div.className = "chat-msg-card animate-fade-in";
-        
+
         const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
         div.innerHTML = `
           <img src="${avatar}" class="chat-avatar" alt="Avatar">
@@ -506,35 +592,32 @@
       }
 
       function escapeHTML(str) {
-        return str.replace(/[&<>'"]/g, 
+        return str.replace(/[&<>'"]/g,
           tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
         );
       }
 
       // Handle Gift
       function handleGift(event) {
-        const div = document.createElement("div");
-        div.className = "feed-sys-event gift-msg animate-fade-in";
-        const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
-        const giftPic = event.giftPictureUrl || "https://www.tiktok.com/favicon.ico";
-        
-        div.innerHTML = `
-          <span class="time">${getTimeString()}</span>
-          <img src="${avatar}" class="feed-avatar" alt="Avatar">
-          <span class="user-name">${event.nickname || event.uniqueId}</span>
-          <span class="event-desc gift-desc">
-            envió <strong>${event.giftName}</strong> x${event.repeatCount}
-            <img src="${giftPic}" class="feed-gift-icon" alt="Gift">
-          </span>
-        `;
-        liveChatFeed.appendChild(div);
-        scrollFeed();
+        if (liveChatFeed) {
+          const div = document.createElement("div");
+          div.className = "feed-sys-event gift-msg animate-fade-in";
+          const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
+          const giftPic = event.giftPictureUrl || "https://www.tiktok.com/favicon.ico";
 
-        updateGiftStats(event);
-
-        if (event.diamondCount >= 10 || event.giftName === "Universo TikTok" || event.giftName === "Caja de Música") {
-          triggerBigGiftOverlay(event);
+          div.innerHTML = `
+            <span class="time">${getTimeString()}</span>
+            <img src="${avatar}" class="feed-avatar" alt="Avatar">
+            <span class="user-name">${event.nickname || event.uniqueId}</span>
+            <span class="event-desc gift-desc">
+              envió <strong>${event.giftName}</strong> x${event.repeatCount}
+              <img src="${giftPic}" class="feed-gift-icon" alt="Gift">
+            </span>
+          `;
+          liveChatFeed.appendChild(div);
+          scrollFeed();
         }
+        updateGiftStats(event);
       }
 
       function updateGiftStats(event) {
@@ -543,7 +626,7 @@
         }
 
         const giftKey = event.giftId || event.giftName;
-        
+
         if (!giftStats[giftKey]) {
           giftStats[giftKey] = {
             name: event.giftName,
@@ -575,32 +658,10 @@
         }
       }
 
-      function triggerBigGiftOverlay(event) {
-        const overlayAvatar = document.getElementById("overlay-user-avatar");
-        const overlayName = document.getElementById("overlay-user-name");
-        const overlayGiftName = document.getElementById("overlay-gift-name");
-        const overlayGiftImage = document.getElementById("overlay-gift-image");
-        const overlayGiftCount = document.getElementById("overlay-gift-count");
 
-        overlayAvatar.src = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
-        overlayName.textContent = event.nickname || event.uniqueId;
-        overlayGiftName.textContent = event.giftName;
-        overlayGiftImage.src = event.giftPictureUrl || "https://www.tiktok.com/favicon.ico";
-        overlayGiftCount.textContent = `x${event.repeatCount}`;
-
-        bigGiftOverlay.classList.remove("hidden");
-        bigGiftOverlay.classList.add("visible");
-
-        setTimeout(() => {
-          bigGiftOverlay.classList.remove("visible");
-          setTimeout(() => {
-            bigGiftOverlay.classList.add("hidden");
-          }, 400);
-        }, 3500);
-      }
 
       function handleLike(event) {
-        if (Math.random() < 0.3) {
+        if (Math.random() < 0.3 && liveChatFeed) {
           const div = document.createElement("div");
           div.className = "feed-sys-event like-msg animate-fade-in";
           const avatar = event.profilePictureUrl || "https://www.tiktok.com/favicon.ico";
@@ -623,20 +684,20 @@
       function createFloatingHeart() {
         const heart = document.createElement("div");
         heart.className = "floating-heart";
-        
+
         const heartIcons = ["fa-heart", "fa-heart", "fa-smile-beam", "fa-thumbs-up", "fa-star"];
         const randomIcon = heartIcons[Math.floor(Math.random() * heartIcons.length)];
-        
+
         const colors = ["#fe0979", "#00f2fe", "#fffc00", "#b92ffc", "#ff5e62", "#2ffc7a"];
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
         heart.innerHTML = `<i class="fas ${randomIcon}"></i>`;
         heart.style.color = randomColor;
-        
+
         const minLeft = window.innerWidth - 120;
         const randomLeft = minLeft + Math.random() * 80;
         heart.style.left = `${randomLeft}px`;
-        
+
         const size = 18 + Math.random() * 14;
         heart.style.fontSize = `${size}px`;
 
@@ -649,7 +710,186 @@
           heart.remove();
         }, duration * 1000);
       }
+
+      // Lógica de carga de estadísticas y perfil de creador
+      async function loadWelcomeProfile() {
+        // Cargar instantáneamente de URL params de Electron como fallback
+        const urlParams = new URLSearchParams(window.location.search);
+        const nameParam = urlParams.get('displayName');
+        const emailParam = urlParams.get('email');
+        if (nameParam) document.getElementById("welcome-name").textContent = nameParam;
+        if (emailParam) document.getElementById("welcome-email").textContent = emailParam;
+
+        try {
+          const res = await fetch("/api/local/creator/stats");
+          if (res.ok) {
+            const data = await res.json();
+            document.getElementById("welcome-name").textContent = data.displayName || nameParam || "Creador";
+            document.getElementById("welcome-email").textContent = data.email || emailParam || "";
+          }
+        } catch (e) {
+          console.warn("No se pudo conectar al servidor local para estadísticas de bienvenida.");
+        }
+      }
+
+      // ================= PAGINACIÓN DE SESIONES =================
+      let _allSessions = [];
+      let _sessionsPage = 1;
+      const SESSIONS_PER_PAGE = 10;
+
+      function renderSessionsPage() {
+        const tbody = document.getElementById("creator-sessions-tbody");
+        const totalPages = Math.max(1, Math.ceil(_allSessions.length / SESSIONS_PER_PAGE));
+        const start = (_sessionsPage - 1) * SESSIONS_PER_PAGE;
+        const pageData = _allSessions.slice(start, start + SESSIONS_PER_PAGE);
+
+        if (pageData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="padding:20px; text-align:center; color:var(--text-muted);">No hay sesiones registradas</td></tr>`;
+        } else {
+          tbody.innerHTML = pageData.map(s => {
+            const dateStr = new Date(s.start_time).toLocaleDateString("es-MX", {
+              day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit"
+            });
+            const creatorUsd = parseFloat(s.estimated_usd || 0);
+            const royalty = parseFloat(s.royalty_usd || 0);
+            const stateHtml = s.paid
+              ? `<span style="color:#10b981; font-weight:600;"><i class="fas fa-check-circle"></i> Pagado</span>`
+              : `<span style="color:#f59e0b; font-weight:600;"><i class="fas fa-clock"></i> Pendiente</span>`;
+            return `
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:12px 14px; font-weight:500;">${dateStr}</td>
+                <td style="padding:12px 14px;">💎 ${parseInt(s.diamonds || 0).toLocaleString()}</td>
+                <td style="padding:12px 14px; color:#10b981;">${creatorUsd.toFixed(2)}</td>
+                <td style="padding:12px 14px; color:#f59e0b;">${royalty.toFixed(2)}</td>
+                <td style="padding:12px 14px;">${stateHtml}</td>
+              </tr>`;
+          }).join("");
+        }
+
+        document.getElementById("sessions-page-info").textContent = `Página ${_sessionsPage} de ${totalPages}`;
+        document.getElementById("sessions-prev-btn").disabled = _sessionsPage <= 1;
+        document.getElementById("sessions-next-btn").disabled = _sessionsPage >= totalPages;
+        document.getElementById("sessions-pagination").style.display =
+          _allSessions.length <= SESSIONS_PER_PAGE ? "none" : "flex";
+      }
+
+      window.changeSessionsPage = function (delta) {
+        const totalPages = Math.max(1, Math.ceil(_allSessions.length / SESSIONS_PER_PAGE));
+        _sessionsPage = Math.max(1, Math.min(totalPages, _sessionsPage + delta));
+        renderSessionsPage();
+      };
+
+      window.loadCreatorStats = async function () {
+        try {
+          const res = await fetch("/api/local/creator/stats");
+          if (!res.ok) throw new Error("Error al obtener estadísticas");
+          const data = await res.json();
+
+          // Render KPIs
+          document.getElementById("stats-diamonds").textContent = parseInt(data.stats.total_diamonds || 0).toLocaleString();
+          document.getElementById("stats-usd").textContent = "$" + parseFloat(data.stats.total_usd || 0).toFixed(2);
+          document.getElementById("stats-pending").textContent = "$" + parseFloat(data.stats.pending_royalty || 0).toFixed(2);
+
+          // Cargar sesiones y resetear a página 1
+          _allSessions = data.sessions || [];
+          _sessionsPage = 1;
+          renderSessionsPage();
+
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      window.resetProfileForm = async function () {
+        document.getElementById("profile-success-msg").style.display = "none";
+        document.getElementById("profile-error-msg").style.display = "none";
+        document.getElementById("profile-password-input").value = "";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const nameParam = urlParams.get('displayName');
+        const emailParam = urlParams.get('email');
+        if (nameParam) document.getElementById("profile-name-input").value = nameParam;
+        if (emailParam) document.getElementById("profile-email-input").value = emailParam;
+
+        try {
+          const res = await fetch("/api/local/creator/stats");
+          if (res.ok) {
+            const data = await res.json();
+            document.getElementById("profile-email-input").value = data.email || emailParam || "";
+            document.getElementById("profile-name-input").value = data.displayName || nameParam || "";
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      window.updateProfile = async function () {
+        const displayName = document.getElementById("profile-name-input").value.trim();
+        const password = document.getElementById("profile-password-input").value.trim();
+        const successMsg = document.getElementById("profile-success-msg");
+        const errorMsg = document.getElementById("profile-error-msg");
+
+        successMsg.style.display = "none";
+        errorMsg.style.display = "none";
+
+        if (password && password.length < 6) {
+          errorMsg.textContent = "La contraseña debe tener al menos 6 caracteres";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/local/creator/profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ displayName, password })
+          });
+          const result = await res.json();
+
+          if (res.ok && result.ok) {
+            successMsg.style.display = "block";
+            document.getElementById("profile-password-input").value = "";
+
+            const params = new URLSearchParams(window.location.search);
+            params.set('displayName', displayName);
+            window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+
+            loadWelcomeProfile();
+          } else {
+            errorMsg.textContent = result.error || "Error al actualizar perfil";
+            errorMsg.style.display = "block";
+          }
+        } catch (e) {
+          errorMsg.textContent = "Error de conexión con el servidor local";
+          errorMsg.style.display = "block";
+        }
+      }
+
+      window.logoutSession = async function () {
+        const confirmed = confirm("¿Seguro que quieres cerrar sesión?");
+        if (!confirmed) return;
+        try {
+          await fetch("/api/local/logout", { method: "POST" });
+        } catch (e) {
+          console.error("Error al cerrar sesión:", e);
+        }
+      }
+
+      // Cargar datos de bienvenida al inicio
+      loadWelcomeProfile();
+
+      // Cargar perfil al abrir la pestaña de perfil
+      window.showDashboardTab = function (tabId) {
+        document.querySelectorAll(".tab-content").forEach(tc => {
+          if (tc.id === tabId) { tc.classList.remove("hidden"); tc.classList.add("active"); }
+          else { tc.classList.remove("active"); tc.classList.add("hidden"); }
+        });
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.toggle("active", b.getAttribute("data-target") === tabId);
+        });
+      };
     });
   </script>
 </body>
+
 </html>

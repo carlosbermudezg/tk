@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Games — Panel de Administración</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:        #0a0a0f;
+      --bg2:       #111118;
+      --bg3:       #18181f;
+      --border:    rgba(255,255,255,0.07);
+      --accent:    #7c3aed;
+      --accent2:   #06b6d4;
+      --green:     #10b981;
+      --red:       #ef4444;
+      --yellow:    #f59e0b;
+      --text:      #f1f5f9;
+      --muted:     #64748b;
+      --card-glow: rgba(124,58,237,0.15);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; width: 220px;
+      background: var(--bg2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 24px 0; z-index: 100;
+    }
+    .sidebar-logo {
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 20px 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .sidebar-logo .logo-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .sidebar-logo h1 { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; line-height: 1.2; }
+    .sidebar-logo span { font-size: 10px; color: var(--muted); }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px; cursor: pointer; border-radius: 8px;
+      margin: 2px 8px; font-size: 13px; font-weight: 500;
+      color: var(--muted); transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover { background: var(--bg3); color: var(--text); }
+    .nav-item.active { background: rgba(124,58,237,0.15); color: var(--accent); border-color: rgba(124,58,237,0.3); }
+    .nav-item i { width: 16px; text-align: center; }
+
+    /* ── Main ── */
+    .main { margin-left: 220px; padding: 28px 32px; min-height: 100vh; }
+
+    /* ── Page ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .page-header { margin-bottom: 24px; }
+    .page-header h2 { font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; }
+    .page-header p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* ── KPI Cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .kpi-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 22px;
+      transition: box-shadow 0.3s; position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .kpi-card.purple::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .kpi-card.cyan::before   { background: linear-gradient(90deg, var(--accent2), #22d3ee); }
+    .kpi-card.green::before  { background: linear-gradient(90deg, var(--green), #34d399); }
+    .kpi-card.yellow::before { background: linear-gradient(90deg, var(--yellow), #fbbf24); }
+    .kpi-card:hover { box-shadow: 0 0 24px var(--card-glow); }
+    .kpi-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .kpi-value { font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 800; }
+    .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden; margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .card-header h3 { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; }
+    .card-body { padding: 20px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px; border-radius: 8px; border: none;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #6d28d9; box-shadow: 0 0 16px rgba(124,58,237,0.5); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #059669; }
+    .btn-danger  { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.4); }
+    .btn-danger:hover  { background: rgba(239,68,68,0.1); }
+    .btn-ghost  { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover  { background: var(--bg3); color: var(--text); }
+    .btn-sm { padding: 5px 11px; font-size: 12px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+         letter-spacing: 0.06em; padding: 10px 14px; text-align: left;
+         border-bottom: 1px solid var(--border); }
+    td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .td-actions { display: flex; gap: 6px; }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    }
+    .badge-green  { background: rgba(16,185,129,0.15); color: var(--green); }
+    .badge-red    { background: rgba(239,68,68,0.15);  color: var(--red); }
+    .badge-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+    .badge-muted  { background: rgba(100,116,139,0.15); color: var(--muted); }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    /* ── API Key display ── */
+    .api-key-cell {
+      font-family: 'Courier New', monospace; font-size: 11px;
+      background: var(--bg3); padding: 4px 8px; border-radius: 5px;
+      color: var(--accent2); display: inline-flex; align-items: center; gap: 6px;
+    }
+    .api-key-cell button {
+      background: none; border: none; cursor: pointer; color: var(--muted);
+      font-size: 11px; padding: 0;
+    }
+    .api-key-cell button:hover { color: var(--text); }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px; width: 460px; max-width: 95vw;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+      animation: modal-in 0.25s ease;
+    }
+    @keyframes modal-in {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal h3 { font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 700; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 13px;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none; border-color: var(--accent);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Config row ── */
+    .config-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0; border-bottom: 1px solid var(--border);
+    }
+    .config-row:last-child { border-bottom: none; }
+    .config-label h4 { font-size: 14px; font-weight: 600; }
+    .config-label p { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .config-input-wrap { display: flex; align-items: center; gap: 8px; }
+    .config-input-wrap input {
+      width: 100px; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 8px 10px; color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 700; text-align: center;
+    }
+    .config-input-wrap input:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Pending amount ── */
+    .pending-total {
+      background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .pending-total .label { font-size: 13px; color: var(--yellow); font-weight: 600; }
+    .pending-total .amount { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: var(--yellow); }
+
+    /* ── Session detail modal ── */
+    .sessions-list { max-height: 420px; overflow-y: auto; }
+    .session-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 12px;
+    }
+    .session-row:last-child { border-bottom: none; }
+    .session-row .meta { color: var(--muted); }
+    .session-row .royalty { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 18px;
+      font-size: 13px; display: flex; align-items: center; gap: 10px;
+      transform: translateY(80px); opacity: 0; transition: all 0.35s cubic-bezier(.34,1.56,.64,1);
+      z-index: 9999; max-width: 320px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 48px 20px; color: var(--muted);
+    }
+    .empty-state i { font-size: 36px; margin-bottom: 12px; display: block; }
+    .empty-state p { font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<!-- Vista de Login -->
+<div id="admin-login-view" style="display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg);">
+  <div style="background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 40px; width: 360px; box-shadow: 0 0 40px var(--card-glow);">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 16px;">🎮</div>
+      <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 800; color: #fff;">Panel Admin</h2>
+      <p style="font-size: 13px; color: var(--muted); margin-top: 4px;">Ingresa tus credenciales de administrador</p>
+    </div>
+    <form id="admin-login-form" onsubmit="handleAdminLogin(event)">
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;">Usuario</label>
+        <input id="admin-user" type="text" placeholder="Ej. Carlos" required style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s;">
+      </div>
+      <div style="margin-bottom: 24px;">
+        <label style="display: block; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px;">Contraseña</label>
+        <input id="admin-pass" type="password" placeholder="••••••••" required style="width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.2s;">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; border-radius: 10px; justify-content: center; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; cursor: pointer;">
+        Iniciar Sesión <i class="fas fa-arrow-right"></i>
+      </button>
+      <div id="login-error" style="color: var(--red); font-size: 12px; font-weight: 600; text-align: center; margin-top: 14px; display: none;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- Vista del Panel de Administración -->
+<div id="admin-dashboard-view" style="display: none;">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🎮</div>
+      <div>
+        <h1>TikTok Games</h1>
+        <span>Panel Admin</span>
+      </div>
+    </div>
+    <div class="nav-item active" data-page="overview"><i class="fas fa-chart-pie"></i> Resumen</div>
+    <div class="nav-item" data-page="creators"><i class="fas fa-users"></i> Creadores</div>
+    <div class="nav-item" data-page="pending"><i class="fas fa-coins"></i> Cobros Pendientes</div>
+    <div class="nav-item" data-page="config"><i class="fas fa-cog"></i> Configuración</div>
+    <div style="flex-grow: 1;"></div>
+    <div class="nav-item" onclick="handleAdminLogout()" style="color: var(--red); margin-top: auto; margin-bottom: 10px;"><i class="fas fa-sign-out-alt"></i> Salir</div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+  <!-- ── PAGE: Overview ── -->
+  <div class="page active" id="page-overview">
+    <div class="page-header">
+      <h2>Resumen General</h2>
+      <p>Métricas globales de todos los creadores</p>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card purple">
+        <div class="kpi-label">Creadores Activos</div>
+        <div class="kpi-value" id="kpi-creators">—</div>
+        <div class="kpi-sub" id="kpi-creators-sub">de — registrados</div>
+      </div>
+      <div class="kpi-card cyan">
+        <div class="kpi-label">Diamantes Generados</div>
+        <div class="kpi-value" id="kpi-diamonds">—</div>
+        <div class="kpi-sub">total histórico</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">USD Generado</div>
+        <div class="kpi-value" id="kpi-usd">—</div>
+        <div class="kpi-sub">estimado para creadores</div>
+      </div>
+      <div class="kpi-card yellow">
+        <div class="kpi-label">Royalties Pendientes</div>
+        <div class="kpi-value" id="kpi-pending">—</div>
+        <div class="kpi-sub">por cobrar 💰</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-users" style="color:var(--accent)"></i> Creadores Recientes</h3>
+        <button class="btn btn-primary btn-sm" onclick="openAddCreator()"><i class="fas fa-plus"></i> Nuevo Creador</button>
+      </div>
+      <div class="card-body table-wrap">
+        <table id="overview-table">
+          <thead>
+            <tr>
+              <th>Creador</th>
+              <th>Estado</th>
+              <th>Sesiones</th>
+              <th>Diamantes</th>
+              <th>USD</th>
+              <th>Pendiente</th>
+              <th>Última Sesión</th>
+            </tr>
+          </thead>
+          <tbody id="overview-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: Creators ── -->
+  <div class="page" id="page-creators">
+    <div class="page-header">
+      <h2>Gestión de Creadores</h2>
+      <p>Administra las licencias y API keys de los creadores</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-users" style="color:var(--accent)"></i> Creadores Registrados</h3>
+        <button class="btn btn-primary btn-sm" onclick="openAddCreator()"><i class="fas fa-plus"></i> Nuevo Creador</button>
+      </div>
+      <div class="card-body table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Correo</th>
+              <th>API Key</th>
+              <th>Licencia desde</th>
+              <th>Estado</th>
+              <th>Pendiente</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="creators-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: Pending ── -->
+  <div class="page" id="page-pending">
+    <div class="page-header">
+      <h2>Cobros Pendientes</h2>
+      <p>Royalties por cobrar a los creadores (10% de sus ganancias)</p>
+    </div>
+
+    <div class="pending-total">
+      <div>
+        <div class="label"><i class="fas fa-coins"></i> Total por cobrar</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Suma de todos los royalties pendientes</div>
+      </div>
+      <div class="amount" id="pending-total-amount">$0.00</div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-receipt" style="color:var(--yellow)"></i> Sesiones Sin Pagar</h3>
+      </div>
+      <div class="card-body table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Creador</th>
+              <th>Fecha Sesión</th>
+              <th>Diamantes</th>
+              <th>USD Creador</th>
+              <th>Royalty (10%)</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="pending-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PAGE: Config ── -->
+  <div class="page" id="page-config">
+    <div class="page-header">
+      <h2>Configuración</h2>
+      <p>Ajusta las tasas de conversión y el porcentaje de royalty</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3><i class="fas fa-sliders-h" style="color:var(--accent)"></i> Tasas del Sistema</h3></div>
+      <div class="card-body">
+        <div class="config-row">
+          <div class="config-label">
+            <h4>Tasa de Diamante</h4>
+            <p>USD que recibe el creador por cada diamante (TikTok paga ~$0.005/diamante)</p>
+          </div>
+          <div class="config-input-wrap">
+            <span style="color:var(--muted);font-size:13px">$</span>
+            <input type="number" id="cfg-diamond-rate" step="0.0001" min="0.001" max="0.1" value="0.005">
+            <span style="color:var(--muted);font-size:12px">USD/💎</span>
+          </div>
+        </div>
+        <div class="config-row">
+          <div class="config-label">
+            <h4>Porcentaje de Royalty</h4>
+            <p>Porcentaje que te pagan a ti del USD estimado del creador</p>
+          </div>
+          <div class="config-input-wrap">
+            <input type="number" id="cfg-royalty-pct" step="0.5" min="1" max="50" value="10">
+            <span style="color:var(--muted);font-size:12px">%</span>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;padding:14px;background:var(--bg3);border-radius:10px;font-size:12px;color:var(--muted)">
+          <strong style="color:var(--text)">Ejemplo con los valores actuales:</strong><br>
+          Un creador recibe <span id="ex-diamonds">1000</span> diamantes →
+          TikTok le paga <span id="ex-usd" style="color:var(--green)">$5.00</span> USD →
+          Tú cobras <span id="ex-royalty" style="color:var(--yellow)">$0.50</span> USD
+        </div>
+
+        <div style="margin-top:16px;display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveConfig()"><i class="fas fa-save"></i> Guardar Configuración</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Modal: Nuevo Creador ── -->
+<div class="modal-overlay" id="modal-add-creator">
+  <div class="modal">
+    <h3><i class="fas fa-user-plus" style="color:var(--accent)"></i> Registrar Nuevo Creador</h3>
+    <div class="form-group">
+      <label>Correo Electrónico</label>
+      <input type="email" id="new-email" placeholder="ej: creador@gmail.com">
+    </div>
+    <div class="form-group">
+      <label>Nombre para mostrar</label>
+      <input type="text" id="new-displayname" placeholder="ej: Carlos Bermúdez">
+    </div>
+    <div class="form-group">
+      <label>Contraseña de acceso</label>
+      <input type="password" id="new-password" placeholder="Contraseña para el launcher">
+    </div>
+    <div class="form-group">
+      <label>Notas (opcional)</label>
+      <textarea id="new-notes" placeholder="Plan, fecha de pago, etc."></textarea>
+    </div>
+    <div id="new-creator-result" style="display:none;margin-top:12px">
+      <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:14px">
+        <div style="font-size:12px;color:var(--green);font-weight:600;margin-bottom:8px">✅ Creador registrado</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px">API Key generada (guárdala, no se puede ver de nuevo):</div>
+        <div class="api-key-cell" style="width:100%;font-size:13px" id="new-api-key-display">—</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-add-creator')">Cerrar</button>
+      <button class="btn btn-primary" id="btn-create-creator" onclick="createCreator()"><i class="fas fa-plus"></i> Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Cambiar Contraseña ── -->
+<div class="modal-overlay" id="modal-change-password">
+  <div class="modal" style="width:380px">
+    <h3><i class="fas fa-key" style="color:var(--accent)"></i> Cambiar Contraseña</h3>
+    <input type="hidden" id="change-pwd-creator-id">
+    <div class="form-group">
+      <label>Nueva Contraseña</label>
+      <input type="password" id="change-pwd-value" placeholder="Nueva contraseña">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-change-password')">Cancelar</button>
+      <button class="btn btn-primary" onclick="doChangePassword()"><i class="fas fa-save"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal: Sesiones de Creador ── -->
+<div class="modal-overlay" id="modal-sessions">
+  <div class="modal" style="width:600px">
+    <h3 id="modal-sessions-title">Sesiones</h3>
+    <div class="sessions-list" id="sessions-list"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-sessions')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"><i class="fas fa-check-circle" style="color:var(--green)"></i> <span id="toast-msg"></span></div>
+
+<script>
+  const API = '';
+
+  // ── Navigation ──────────────────────────────────────────────────────────────
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('page-' + item.dataset.page).classList.add('active');
+      if (item.dataset.page === 'overview') loadOverview();
+      if (item.dataset.page === 'creators') loadCreators();
+      if (item.dataset.page === 'pending')  loadPending();
+      if (item.dataset.page === 'config')   loadConfig();
+    });
+  });
+
+  // ── Toast ────────────────────────────────────────────────────────────────────
+  function toast(msg, isError = false) {
+    const el = document.getElementById('toast');
+    const msgEl = document.getElementById('toast-msg');
+    const icon = el.querySelector('i');
+    icon.className = isError ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
+    icon.style.color = isError ? 'var(--red)' : 'var(--green)';
+    msgEl.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // ── Format helpers ────────────────────────────────────────────────────────────
+  function fmt(n, decimals = 2) {
+    const num = parseFloat(n) || 0;
+    return num.toLocaleString('es-MX', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+  function fmtDateShort(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // ── API calls ─────────────────────────────────────────────────────────────────
+  async function api(method, path, body) {
+    const token = localStorage.getItem('admin_token') || '';
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['x-admin-token'] = token;
+    }
+
+    const res = await fetch(API + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined
+    });
+
+    if (res.status === 401) {
+      localStorage.removeItem('admin_token');
+      checkAdminAuth();
+      throw new Error('Sesión expirada o no autorizada');
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Error del servidor');
+    }
+    return res.json();
+  }
+
+  // ── Overview ─────────────────────────────────────────────────────────────────
+  async function loadOverview() {
+    const [stats, creators] = await Promise.all([
+      api('GET', '/api/stats'),
+      api('GET', '/api/creators')
+    ]);
+
+    document.getElementById('kpi-creators').textContent = stats.activeCreators;
+    document.getElementById('kpi-creators-sub').textContent = `de ${stats.totalCreators} registrados`;
+    document.getElementById('kpi-diamonds').textContent = parseInt(stats.totalDiamonds).toLocaleString();
+    document.getElementById('kpi-usd').textContent = '$' + fmt(stats.totalUsd);
+    document.getElementById('kpi-pending').textContent = '$' + fmt(stats.pendingRoyalty);
+
+    const tbody = document.getElementById('overview-tbody');
+    if (!creators.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-users"></i><p>No hay creadores registrados aún</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = creators.slice(0, 6).map(c => `
+      <tr>
+        <td><strong>${c.display_name}</strong><br><span style="color:var(--muted);font-size:11px">${c.email || '—'}</span></td>
+        <td>${c.active
+          ? '<span class="badge badge-green"><span class="dot"></span>Activo</span>'
+          : '<span class="badge badge-red"><span class="dot"></span>Inactivo</span>'}</td>
+        <td>${c.session_count || 0}</td>
+        <td>💎 ${parseInt(c.total_diamonds || 0).toLocaleString()}</td>
+        <td>$${fmt(c.total_usd || 0)}</td>
+        <td style="color:var(--yellow);font-weight:600">$${fmt(c.pending_royalty || 0)}</td>
+        <td style="color:var(--muted);font-size:12px">${fmtDateShort(c.last_session)}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Creators ──────────────────────────────────────────────────────────────────
+  async function loadCreators() {
+    const creators = await api('GET', '/api/creators');
+    const tbody = document.getElementById('creators-tbody');
+    if (!creators.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><i class="fas fa-users"></i><p>No hay creadores registrados</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = creators.map(c => `
+      <tr>
+        <td><strong>${c.display_name}</strong></td>
+        <td style="color:var(--muted)">${c.email || '—'}</td>
+        <td>
+          <div class="api-key-cell">
+            <span id="key-${c.id}">${c.api_key}</span>
+            <button onclick="copyKey('${c.api_key}')" title="Copiar"><i class="fas fa-copy"></i></button>
+          </div>
+        </td>
+        <td style="color:var(--muted);font-size:12px">${fmtDateShort(c.license_date)}</td>
+        <td>${c.active
+          ? '<span class="badge badge-green"><span class="dot"></span>Activo</span>'
+          : '<span class="badge badge-red"><span class="dot"></span>Inactivo</span>'}</td>
+        <td style="color:${parseFloat(c.pending_royalty||0)>0?'var(--yellow)':'var(--muted)'};font-weight:600">
+          $${fmt(c.pending_royalty || 0)}
+        </td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-ghost btn-sm" onclick="viewSessions(${c.id},'${c.display_name}')" title="Ver sesiones"><i class="fas fa-history"></i></button>
+            <button class="btn btn-ghost btn-sm" onclick="openChangePwd(${c.id})" title="Cambiar contraseña"><i class="fas fa-key"></i></button>
+            ${c.active
+              ? `<button class="btn btn-danger btn-sm" onclick="toggleCreator(${c.id},false)"><i class="fas fa-ban"></i> Revocar</button>`
+              : `<button class="btn btn-success btn-sm" onclick="toggleCreator(${c.id},true)"><i class="fas fa-check"></i> Activar</button>`
+            }
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function copyKey(key) {
+    navigator.clipboard.writeText(key).then(() => toast('API Key copiada al portapapeles'));
+  }
+
+  async function toggleCreator(id, active) {
+    await api('PUT', `/api/creators/${id}`, { active });
+    toast(active ? 'Creador activado ✅' : 'Acceso revocado ❌', !active);
+    loadCreators();
+  }
+
+  async function viewSessions(creatorId, name) {
+    document.getElementById('modal-sessions-title').innerHTML =
+      `<i class="fas fa-history" style="color:var(--accent)"></i> Sesiones de ${name}`;
+    const sessions = await api('GET', `/api/creators/${creatorId}/sessions`);
+    const list = document.getElementById('sessions-list');
+    if (!sessions.length) {
+      list.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times"></i><p>Sin sesiones registradas</p></div>';
+    } else {
+      list.innerHTML = sessions.map(s => `
+        <div class="session-row">
+          <div>
+            <div style="font-weight:600;font-size:13px">${fmtDate(s.start_time)}</div>
+            <div class="meta">💎 ${s.diamonds} diamantes · ❤️ ${s.likes} likes · 👥 ${s.new_followers} seguidores</div>
+          </div>
+          <div style="text-align:right">
+            <div class="royalty" style="color:var(--yellow)">$${fmt(s.royalty_usd)}</div>
+            <div>
+              ${s.paid
+                ? '<span class="badge badge-green">✅ Pagado</span>'
+                : `<button class="btn btn-success btn-sm" onclick="markPaid(${s.id})"><i class="fas fa-check"></i> Marcar Pagado</button>`}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    openModal('modal-sessions');
+  }
+
+  async function markPaid(sessionId) {
+    await api('PUT', `/api/sessions/${sessionId}/paid`, { paid: true });
+    toast('Royalty marcado como pagado ✅');
+    closeModal('modal-sessions');
+    loadPending();
+  }
+
+  // ── Pending ───────────────────────────────────────────────────────────────────
+  async function loadPending() {
+    const rows = await api('GET', '/api/pending-royalties');
+    const total = rows.reduce((s, r) => s + parseFloat(r.royalty_usd || 0), 0);
+    document.getElementById('pending-total-amount').textContent = '$' + fmt(total);
+
+    const tbody = document.getElementById('pending-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-check-circle"></i><p>¡Todo al día! No hay cobros pendientes</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><strong>${r.display_name}</strong><br><span style="color:var(--muted);font-size:11px">${r.email || r.username}</span></td>
+        <td style="font-size:12px;color:var(--muted)">${fmtDateShort(r.start_time)}</td>
+        <td>💎 ${parseInt(r.diamonds).toLocaleString()}</td>
+        <td style="color:var(--green)">$${fmt(r.estimated_usd)}</td>
+        <td style="color:var(--yellow);font-weight:700;font-size:15px">$${fmt(r.royalty_usd)}</td>
+        <td>
+          <button class="btn btn-success btn-sm" onclick="markPaidFromPending(${r.session_id})">
+            <i class="fas fa-check"></i> Marcar Pagado
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function markPaidFromPending(sessionId) {
+    await api('PUT', `/api/sessions/${sessionId}/paid`, { paid: true });
+    toast('Royalty marcado como pagado ✅');
+    loadPending();
+  }
+
+  // ── Config ────────────────────────────────────────────────────────────────────
+  async function loadConfig() {
+    const cfg = await api('GET', '/api/config');
+    document.getElementById('cfg-diamond-rate').value = cfg.diamond_rate_usd;
+    document.getElementById('cfg-royalty-pct').value  = cfg.royalty_pct;
+    updateConfigExample();
+  }
+
+  function updateConfigExample() {
+    const rate = parseFloat(document.getElementById('cfg-diamond-rate').value) || 0.005;
+    const pct  = parseFloat(document.getElementById('cfg-royalty-pct').value)  || 10;
+    const usd  = 1000 * rate;
+    const roy  = usd * (pct / 100);
+    document.getElementById('ex-usd').textContent    = '$' + fmt(usd);
+    document.getElementById('ex-royalty').textContent = '$' + fmt(roy);
+  }
+
+  document.getElementById('cfg-diamond-rate').addEventListener('input', updateConfigExample);
+  document.getElementById('cfg-royalty-pct').addEventListener('input', updateConfigExample);
+
+  async function saveConfig() {
+    const diamond_rate_usd = parseFloat(document.getElementById('cfg-diamond-rate').value);
+    const royalty_pct      = parseFloat(document.getElementById('cfg-royalty-pct').value);
+    await api('PUT', '/api/config', { diamond_rate_usd, royalty_pct });
+    toast('Configuración guardada ✅');
+    loadOverview();
+  }
+
+  // ── Add Creator Modal ────────────────────────────────────────────────────
+  function openAddCreator() {
+    document.getElementById('new-email').value = '';
+    document.getElementById('new-displayname').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('new-notes').value = '';
+    document.getElementById('new-creator-result').style.display = 'none';
+    document.getElementById('btn-create-creator').style.display = 'inline-flex';
+    openModal('modal-add-creator');
+  }
+
+  async function createCreator() {
+    const email       = document.getElementById('new-email').value.trim();
+    const displayName = document.getElementById('new-displayname').value.trim();
+    const password    = document.getElementById('new-password').value.trim();
+    const notes       = document.getElementById('new-notes').value.trim();
+
+    if (!email)    { toast('El correo es requerido', true); return; }
+    if (!password) { toast('La contraseña es requerida', true); return; }
+
+    const btn = document.getElementById('btn-create-creator');
+    btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+
+    try {
+      const creator = await api('POST', '/api/creators', { email, displayName, password, notes });
+      document.getElementById('new-api-key-display').innerHTML =
+        `${creator.api_key} <button onclick="navigator.clipboard.writeText('${creator.api_key}').then(()=>toast('Copiada!'))"><i class="fas fa-copy"></i></button>`;
+      document.getElementById('new-creator-result').style.display = 'block';
+      btn.style.display = 'none';
+      loadCreators(); loadOverview();
+    } catch (e) {
+      toast(e.message, true);
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Registrar';
+    }
+  }
+
+  // ── Change Password ────────────────────────────────────────────────────
+  function openChangePwd(creatorId) {
+    document.getElementById('change-pwd-creator-id').value = creatorId;
+    document.getElementById('change-pwd-value').value = '';
+    openModal('modal-change-password');
+  }
+
+  async function doChangePassword() {
+    const id  = document.getElementById('change-pwd-creator-id').value;
+    const pwd = document.getElementById('change-pwd-value').value.trim();
+    if (!pwd) { toast('Ingresa una contraseña', true); return; }
+    await api('PUT', `/api/creators/${id}/password`, { password: pwd });
+    toast('Contraseña actualizada ✅');
+    closeModal('modal-change-password');
+  }
+
+  // ── Modal helpers ─────────────────────────────────────────────────────────────
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+  });
+
+  // ── Authentication ────────────────────────────────────────────────────────────
+  function checkAdminAuth() {
+    const token = localStorage.getItem('admin_token');
+    const loginView = document.getElementById('admin-login-view');
+    const dashboardView = document.getElementById('admin-dashboard-view');
+    
+    if (token) {
+      if (loginView) loginView.style.display = 'none';
+      if (dashboardView) dashboardView.style.display = 'block';
+      loadOverview();
+    } else {
+      if (loginView) loginView.style.display = 'flex';
+      if (dashboardView) dashboardView.style.display = 'none';
+    }
+  }
+
+  window.handleAdminLogin = async function(event) {
+    event.preventDefault();
+    const username = document.getElementById('admin-user').value.trim();
+    const password = document.getElementById('admin-pass').value.trim();
+    const errorEl = document.getElementById('login-error');
+    errorEl.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Credenciales incorrectas');
+      }
+
+      const data = await res.json();
+      localStorage.setItem('admin_token', data.token);
+      checkAdminAuth();
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  };
+
+  window.handleAdminLogout = function() {
+    localStorage.removeItem('admin_token');
+    checkAdminAuth();
+  };
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+  checkAdminAuth();
+</script>
+</div> <!-- admin-dashboard-view -->
+</body>
+</html>
