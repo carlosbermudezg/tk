@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Launcher de TikTok Games para creadores",
+  "author": "Carlos",
   "main": "electron/main.js",
   "scripts": {
     "start": "tsx server.ts",
     "electron": "electron --disable-gpu --no-sandbox --disable-software-rasterizer .",
     "compile": "tsc",
-    "pack": "npm run compile && electron-builder --dir",
-    "dist": "npm run compile && electron-builder"
+    "pack": "npm run compile && electron-packager . \"TikTok Games Launcher\" --platform=win32 --arch=x64 --out=dist-electron --overwrite --ignore=\"(central-server|dist-electron|tsconfig.json|server.ts)\"",
+    "dist": "npm run compile && electron-packager . \"TikTok Games Launcher\" --platform=win32 --arch=x64 --out=dist-electron --overwrite --ignore=\"(central-server|dist-electron|tsconfig.json|server.ts|config\\.local\\.json|scratch|temp_update|\\.git)\""
   },
   "dependencies": {
     "express": "^4.19.2",
@@ -20,36 +21,8 @@
     "@types/express": "^5.0.6",
     "@types/node": "^20.14.9",
     "electron": "^43.1.1",
-    "electron-builder": "^24.13.3",
+    "electron-packager": "^17.1.2",
     "tsx": "^4.22.5",
     "typescript": "^5.5.2"
-  },
-  "build": {
-    "appId": "com.tiktokgames.launcher",
-    "productName": "TikTok Games Launcher",
-    "directories": {
-      "output": "dist-electron"
-    },
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "electron/icon.png"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "TikTok Games Launcher"
-    },
-    "files": [
-      "**/*",
-      "!central-server/**/*",
-      "!temp_update/**/*",
-      "!server.ts",
-      "!tsconfig.json",
-      "!src/**/*"
-    ]
   }
 }

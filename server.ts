@@ -12,6 +12,8 @@ const __dirname = path.dirname(__filename);
 // ─── Configuración de Licencia (prioridad: env > config.local.json > config.json) ───
 let CENTRAL_API_URL = process.env.CENTRAL_API_URL || "http://localhost:4000";
 let API_KEY = process.env.CENTRAL_API_KEY || "";
+let SESSION_DISPLAY_NAME = "";
+let SESSION_EMAIL = "";
 
 if (!API_KEY) {
   const configPath = path.join(__dirname, "config.json");
@@ -214,13 +216,15 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
-// Sincronizar API Key cuando el usuario inicia sesión con otra cuenta
+// Sincronizar API Key cuando el usuario inicia sesión
 app.post("/api/local/login-sync", (req, res) => {
-  const { apiKey } = req.body;
+  const { apiKey, displayName, email } = req.body;
   API_KEY = apiKey || "";
-  console.log("🔑 [LoginSync] Sincronizada API Key localmente");
+  SESSION_DISPLAY_NAME = displayName || "";
+  SESSION_EMAIL = email || "";
+  console.log("🔑 [LoginSync] Sincronizada API Key localmente para:", SESSION_EMAIL);
   res.json({ ok: true });
 });
 

@@ -17,6 +17,56 @@
 </head>
 
 <body>
+  <!-- ===== LOGIN OVERLAY ===== -->
+  <div id="login-overlay" style="
+    position:fixed;inset:0;z-index:9999;
+    background:#0a0a0f;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Outfit',sans-serif;
+  ">
+    <div style="
+      background:#111118;border:1px solid rgba(255,255,255,0.07);
+      border-radius:20px;padding:40px 36px;width:360px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    ">
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="
+          width:58px;height:58px;border-radius:16px;
+          background:linear-gradient(135deg,#7c3aed,#06b6d4);
+          display:inline-flex;align-items:center;justify-content:center;
+          font-size:28px;margin-bottom:12px;
+        ">🎮</div>
+        <h1 style="font-size:22px;font-weight:800;color:#f1f5f9;margin:0 0 4px">TikTok Games</h1>
+        <p style="font-size:12px;color:#64748b;margin:0">Ingresa con tu cuenta de creador</p>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Correo electrónico</label>
+        <input id="login-email" type="email" placeholder="creador@email.com" style="
+          width:100%;box-sizing:border-box;background:#18181f;
+          border:1px solid rgba(255,255,255,0.07);border-radius:10px;
+          padding:12px 14px;color:#f1f5f9;font-family:'Outfit',sans-serif;
+          font-size:14px;outline:none;transition:border-color .2s;
+        ">
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Contraseña</label>
+        <input id="login-password" type="password" placeholder="••••••••" style="
+          width:100%;box-sizing:border-box;background:#18181f;
+          border:1px solid rgba(255,255,255,0.07);border-radius:10px;
+          padding:12px 14px;color:#f1f5f9;font-family:'Outfit',sans-serif;
+          font-size:14px;outline:none;transition:border-color .2s;
+        ">
+      </div>
+      <button id="login-btn" style="
+        width:100%;padding:14px;border-radius:10px;border:none;
+        background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;
+        font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
+        cursor:pointer;transition:opacity .2s;
+      ">Iniciar Sesión</button>
+      <div id="login-error" style="color:#ef4444;font-size:12px;text-align:center;margin-top:12px;min-height:16px"></div>
+    </div>
+  </div>
+
   <div class="app-container">
     <!-- Header -->
     <header class="app-header">
@@ -272,6 +322,92 @@
   <!-- Socket.io -->
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // ===== LOGIN LOGIC =====
+    const CENTRAL_API_URL = window.__CENTRAL_API_URL__ || 'http://localhost:4000';
+
+    async function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error');
+      const btn = document.getElementById('login-btn');
+      if (!email || !password) { errEl.textContent = 'Ingresa todos los campos'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+      errEl.textContent = '';
+      try {
+        const res = await fetch(`${CENTRAL_API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || data.message || 'Credenciales incorrectas');
+        // Sync API key with local server
+        await fetch('/api/local/login-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: data.apiKey, displayName: data.displayName, email: data.email })
+        });
+        localStorage.setItem('tk_session', JSON.stringify({ apiKey: data.apiKey, displayName: data.displayName, email: data.email }));
+        showDashboard(data);
+      } catch (err) {
+        errEl.textContent = err.message || 'Error al iniciar sesión';
+        btn.disabled = false;
+        btn.textContent = 'Iniciar Sesión';
+      }
+    }
+
+    function showDashboard(userData) {
+      document.getElementById('login-overlay').style.display = 'none';
+      if (userData) {
+        const nameEl = document.getElementById('welcome-name');
+        const emailEl = document.getElementById('welcome-email');
+        if (nameEl) nameEl.textContent = userData.displayName || 'Creador';
+        if (emailEl) emailEl.textContent = userData.email || '';
+      }
+    }
+
+    window.logoutSession = async function () {
+      if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
+      localStorage.removeItem('tk_session');
+      try { 
+        await fetch('/api/local/logout', { method: 'POST' }); 
+      } catch (err) {
+        console.error('Error logging out from server:', err);
+      }
+      window.location.href = window.location.origin + window.location.pathname;
+    };
+
+    // Auto-login if session saved
+    (async function() {
+      const saved = localStorage.getItem('tk_session');
+      if (saved) {
+        try {
+          const sess = JSON.parse(saved);
+          // Verify session is still valid
+          const res = await fetch(`${CENTRAL_API_URL}/api/license/validate`, {
+            headers: { 'x-api-key': sess.apiKey }
+          });
+          if (res.ok) {
+            await fetch('/api/local/login-sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ apiKey: sess.apiKey, displayName: sess.displayName, email: sess.email })
+            });
+            showDashboard(sess);
+            return;
+          }
+        } catch {}
+        localStorage.removeItem('tk_session');
+      }
+    })();
+
+    document.getElementById('login-btn').addEventListener('click', doLogin);
+    ['login-email', 'login-password'].forEach(id => {
+      document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    });
+    // ===== END LOGIN LOGIC =====
+
     document.addEventListener("DOMContentLoaded", () => {
       const socket = io();
 
@@ -865,15 +1001,6 @@
         }
       }
 
-      window.logoutSession = async function () {
-        const confirmed = confirm("¿Seguro que quieres cerrar sesión?");
-        if (!confirmed) return;
-        try {
-          await fetch("/api/local/logout", { method: "POST" });
-        } catch (e) {
-          console.error("Error al cerrar sesión:", e);
-        }
-      }
 
       // Cargar datos de bienvenida al inicio
       loadWelcomeProfile();
