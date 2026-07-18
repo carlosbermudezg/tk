@@ -1,7 +1,8 @@
-central-server
 node_modules
+central-server
+dist-electron
+electron
 .env
 package-lock.json
 .gitignore
 config.local.json
-dist-electron
