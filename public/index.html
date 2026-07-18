@@ -40,7 +40,9 @@
         <p style="font-size:12px;color:#64748b;margin:0">Ingresa con tu cuenta de creador</p>
       </div>
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Correo electrónico</label>
+        <label
+          style="display:block;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Correo
+          electrónico</label>
         <input id="login-email" type="email" placeholder="creador@email.com" style="
           width:100%;box-sizing:border-box;background:#18181f;
           border:1px solid rgba(255,255,255,0.07);border-radius:10px;
@@ -49,7 +51,8 @@
         ">
       </div>
       <div style="margin-bottom:20px">
-        <label style="display:block;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Contraseña</label>
+        <label
+          style="display:block;font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Contraseña</label>
         <input id="login-password" type="password" placeholder="••••••••" style="
           width:100%;box-sizing:border-box;background:#18181f;
           border:1px solid rgba(255,255,255,0.07);border-radius:10px;
@@ -63,7 +66,8 @@
         font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;
         cursor:pointer;transition:opacity .2s;
       ">Iniciar Sesión</button>
-      <div id="login-error" style="color:#ef4444;font-size:12px;text-align:center;margin-top:12px;min-height:16px"></div>
+      <div id="login-error" style="color:#ef4444;font-size:12px;text-align:center;margin-top:12px;min-height:16px">
+      </div>
     </div>
   </div>
 
@@ -106,7 +110,7 @@
         <div>
           <h2 style="font-size: 16px; font-weight: 700; font-family: 'Outfit', sans-serif; margin: 0;">¡Hola, <span
               id="welcome-name" class="gradient-text">Creador</span>! 👋</h2>
-          <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0 0;">Bienvenido de vuelta a tu centro de
+          <p style="font-size: 12px; color: var(--muted); margin: 2px 0 0 0;">Bienvenido a tu centro de
             control.</p>
         </div>
       </div>
@@ -234,23 +238,31 @@
                 <thead>
                   <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
                     <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Fecha</th>
-                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Diamantes</th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Diamantes
+                    </th>
                     <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">USD</th>
-                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Regalías</th>
-                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Estado</th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Regalías
+                    </th>
+                    <th style="padding:10px 14px; text-align:left; color:var(--text-muted); font-weight:600;">Estado
+                    </th>
                   </tr>
                 </thead>
                 <tbody id="creator-sessions-tbody">
-                  <tr><td colspan="5" style="padding:20px; text-align:center; color:var(--text-muted);">Cargando...</td></tr>
+                  <tr>
+                    <td colspan="5" style="padding:20px; text-align:center; color:var(--text-muted);">Cargando...</td>
+                  </tr>
                 </tbody>
               </table>
               <!-- Paginación -->
-              <div id="sessions-pagination" style="display:flex; align-items:center; justify-content:space-between; padding:14px 4px 0;">
-                <button id="sessions-prev-btn" onclick="changeSessionsPage(-1)" style="padding:7px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#f1f5f9; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;">
+              <div id="sessions-pagination"
+                style="display:flex; align-items:center; justify-content:space-between; padding:14px 4px 0;">
+                <button id="sessions-prev-btn" onclick="changeSessionsPage(-1)"
+                  style="padding:7px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#f1f5f9; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;">
                   ← Anterior
                 </button>
                 <span id="sessions-page-info" style="font-size:12px; color:var(--text-muted);">Página 1 de 1</span>
-                <button id="sessions-next-btn" onclick="changeSessionsPage(1)" style="padding:7px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#f1f5f9; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;">
+                <button id="sessions-next-btn" onclick="changeSessionsPage(1)"
+                  style="padding:7px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:#f1f5f9; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s;">
                   Siguiente →
                 </button>
               </div>
@@ -370,8 +382,8 @@
     window.logoutSession = async function () {
       if (!confirm('¿Seguro que quieres cerrar sesión?')) return;
       localStorage.removeItem('tk_session');
-      try { 
-        await fetch('/api/local/logout', { method: 'POST' }); 
+      try {
+        await fetch('/api/local/logout', { method: 'POST' });
       } catch (err) {
         console.error('Error logging out from server:', err);
       }
@@ -379,7 +391,7 @@
     };
 
     // Auto-login if session saved
-    (async function() {
+    (async function () {
       const saved = localStorage.getItem('tk_session');
       if (saved) {
         try {
@@ -397,7 +409,7 @@
             showDashboard(sess);
             return;
           }
-        } catch {}
+        } catch { }
         localStorage.removeItem('tk_session');
       }
     })();
