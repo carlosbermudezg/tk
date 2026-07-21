@@ -146,26 +146,7 @@
       margin-top: 10px;
     }
 
-    .open-controls-btn {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: var(--panel-bg);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: var(--text);
-      padding: 10px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-family: 'Outfit', sans-serif;
-      font-size: 16px;
-      z-index: 100;
-      transition: background 0.2s;
-      pointer-events: auto;
-    }
 
-    .open-controls-btn:hover {
-      background: var(--primary);
-    }
     
     .hidden {
       display: none !important;
@@ -238,8 +219,6 @@
         <!-- JS will populate this -->
       </div>
     </div>
-    
-    <button class="open-controls-btn" onclick="showControls()"><i class="fas fa-cog"></i> Controles</button>
   </div>
 
   <div id="status-screen" class="status-overlay">
@@ -247,13 +226,31 @@
     <p id="status-subtitle">Escribe "GO" para entrar a la arena</p>
   </div>
 
+
+
   <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
   <!-- Using Three.js r128 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.18.0/meshopt_decoder.js"></script>
   
   <script>
+    // --- CONTROL DE ATAJOS Y CONTROLES AL INICIO (Para respuesta inmediata antes de cargar 108MB) ---
+    window.focus();
+    
+    function showControls() {
+      window.open('royale-controls.html', 'RoyaleControls', 'width=350,height=600,resizable=yes');
+    }
+
+    document.addEventListener("dblclick", showControls);
+    document.addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() === 'c') {
+        showControls();
+      }
+    });
+
     // System Constants
     const STATE_WAITING = 0;
     const STATE_PLAYING = 1;
@@ -269,18 +266,41 @@
     const container = document.getElementById('game-container');
     const labelsContainer = document.getElementById('labels-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a14);
-    scene.fog = new THREE.FogExp2(0x0a0a14, 0.002);
+    scene.background = new THREE.Color(0xa5cdff);
+    scene.fog = new THREE.FogExp2(0xa5cdff, 0.002);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
     // Position camera looking down at the arena, zoomed out enough to see the whole 500x500 square
     camera.position.set(0, 450, 400);
     camera.lookAt(0, 0, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    container.appendChild(renderer.domElement);
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      container.appendChild(renderer.domElement);
+    } catch (e) {
+      console.warn("WebGL no disponible. Se crea un renderer de simulación:", e.message);
+      renderer = {
+        setSize: () => {},
+        render: () => {},
+        shadowMap: {}
+      };
+      // Mostrar un mensaje en pantalla indicando que no hay GPU/WebGL, pero dejar interactuar
+      const warningDiv = document.createElement('div');
+      warningDiv.style.position = 'absolute';
+      warningDiv.style.top = '10px';
+      warningDiv.style.left = '50%';
+      warningDiv.style.transform = 'translateX(-50%)';
+      warningDiv.style.background = 'rgba(255, 0, 0, 0.8)';
+      warningDiv.style.color = 'white';
+      warningDiv.style.padding = '10px';
+      warningDiv.style.borderRadius = '5px';
+      warningDiv.style.zIndex = '99999';
+      warningDiv.innerHTML = '⚠️ Advertencia: Aceleración por hardware desactivada en el Launcher. Habilítala para ver el juego 3D.';
+      document.body.appendChild(warningDiv);
+    }
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -301,22 +321,22 @@
     const arenaSize = 250;
     const floorGeo = new THREE.PlaneGeometry(arenaSize * 2, arenaSize * 2);
     const floorMat = new THREE.MeshStandardMaterial({ 
-      color: 0x111122,
-      roughness: 0.8,
-      metalness: 0.2
+      color: 0xffffff,
+      roughness: 0.6,
+      metalness: 0.1
     });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     scene.add(floor);
 
-    const gridHelper = new THREE.GridHelper(arenaSize * 2, 50, 0xfe0979, 0x333333);
+    const gridHelper = new THREE.GridHelper(arenaSize * 2, 50, 0xd0e0f0, 0xe2ebf5);
     gridHelper.position.y = 0.1;
     scene.add(gridHelper);
 
     // Boundary walls (visual)
     const wallGeo = new THREE.BoxGeometry(arenaSize * 2, 10, 2);
-    const wallMat = new THREE.MeshStandardMaterial({ color: 0x00f2fe, transparent: true, opacity: 0.3, emissive: 0x00f2fe, emissiveIntensity: 0.5 });
+    const wallMat = new THREE.MeshStandardMaterial({ color: 0xbfe3ff, transparent: true, opacity: 0.2 });
     
     const wallN = new THREE.Mesh(wallGeo, wallMat);
     wallN.position.set(0, 5, -arenaSize);
@@ -356,20 +376,37 @@
     let mixers = [];
 
     const gltfLoader = new THREE.GLTFLoader();
+    gltfLoader.setMeshoptDecoder(MeshoptDecoder);
     document.getElementById('status-subtitle').textContent = "Cargando modelo 3D...";
     gltfLoader.load('luchador.glb', (gltf) => {
       globalCharacterModel = gltf.scene;
       globalCharacterAnimations = gltf.animations;
       
-      // Ajustar escala (depende de cómo se exportó de Mixamo, 0.1 o 10 suele ser necesario si es muy grande o chico)
-      // Ajustamos asumiendo escala estándar de 1 metro = 1 unidad.
-      globalCharacterModel.scale.set(10, 10, 10); 
+      // Calcular tamaño del personaje anatómicamente usando la altura del hueso de la cabeza
+      let esqueletoHeight = 1.8; // altura estándar por defecto
+      
+      // Buscar el hueso de la cabeza
+      const headBone = globalCharacterModel.getObjectByName('mixamorigHead');
+      if (headBone) {
+        // Actualizar matrices del modelo temporalmente para obtener posiciones globales reales
+        globalCharacterModel.updateMatrixWorld(true);
+        const worldPos = new THREE.Vector3();
+        headBone.getWorldPosition(worldPos);
+        if (worldPos.y > 0.01) {
+          esqueletoHeight = worldPos.y * 1.1; // Ajuste para incluir el tope de la cabeza
+        }
+      }
+      
+      const targetHeight = 48;
+      const scaleFactor = targetHeight / esqueletoHeight;
+      console.log('Altura anatómica del esqueleto:', esqueletoHeight, 'Factor de escala aplicado:', scaleFactor);
+      
+      globalCharacterModel.scale.set(scaleFactor, scaleFactor, scaleFactor);
       
       globalCharacterModel.traverse((node) => {
         if (node.isMesh) {
           node.castShadow = true;
           node.receiveShadow = true;
-          // Guardar el material original para poder clonarlo y teñirlo por jugador
           node.userData.originalMaterial = node.material;
         }
       });
@@ -391,11 +428,14 @@
         this.isDead = false;
         
         this.speed = 30 + Math.random() * 15; // units per second
-        this.attackRange = 12;
+        this.attackRange = 32;
         this.attackDamage = 50;
         this.attackCooldown = 0.8; // seconds
         this.lastAttackTime = 0;
         this.target = null;
+        this.patrolTarget = null;
+        this.isAttackingState = false;
+        this.prevHipsPos = new THREE.Vector3(0,0,0);
         this.knockback = new THREE.Vector3(0,0,0);
 
         // Spawn position
@@ -413,49 +453,83 @@
           // Clone the model properly with SkeletonUtils
           this.mesh = THREE.SkeletonUtils.clone(globalCharacterModel);
           
-          // Tint the material slightly to differentiate players
+          // Clonar materiales con skinning=true para que la malla siga los huesos
           this.mesh.traverse((node) => {
-            if (node.isMesh && node.userData.originalMaterial) {
-              node.material = node.userData.originalMaterial.clone();
-              // Try applying profile pic to the material (might look chaotic, but fun)
-              if (profileUrl) {
-                textureLoader.load(profileUrl, (tex) => { 
-                  node.material.map = tex; 
-                  node.material.color = new THREE.Color(0xffffff); // clear tint if tex is used
-                  node.material.needsUpdate = true;
-                });
+            if (node.isMesh) {
+              node.castShadow = true;
+              node.receiveShadow = true;
+              const cloneMat = (m) => {
+                const c = m && typeof m.clone === 'function' ? m.clone() : new THREE.MeshStandardMaterial();
+                c.skinning = true;
+                c.needsUpdate = true;
+                return c;
+              };
+              if (Array.isArray(node.material)) {
+                node.material = node.material.map(cloneMat);
               } else {
-                node.material.color = baseColor;
+                node.material = cloneMat(node.material || node.userData.originalMaterial);
               }
+              // Intentar aplicar foto de perfil
+              const mats = Array.isArray(node.material) ? node.material : [node.material];
+              mats.forEach(mat => {
+                if (profileUrl) {
+                  textureLoader.load(profileUrl, (tex) => {
+                    mat.map = tex;
+                    mat.color.setHex(0xffffff);
+                    mat.needsUpdate = true;
+                  });
+                }
+              });
             }
           });
 
-          // Animation Setup
+          // Animation Setup — mixer sobre la raíz clonada
           this.mixer = new THREE.AnimationMixer(this.mesh);
           mixers.push(this.mixer);
 
           if (globalCharacterAnimations && globalCharacterAnimations.length > 0) {
-            // Find animations by keywords or fallback to indexes
             const getAnim = (keywords, fallbackIdx) => {
               for (const a of globalCharacterAnimations) {
-                const name = a.name.toLowerCase();
-                for (const kw of keywords) {
-                  if (name.includes(kw)) return a;
-                }
+                const n = a.name.toLowerCase();
+                if (keywords.some(kw => n.includes(kw))) return a;
               }
-              return globalCharacterAnimations[fallbackIdx] || globalCharacterAnimations[0];
+              return globalCharacterAnimations[fallbackIdx] ?? null;
             };
 
-            const animIdle = getAnim(['idle', 'wait'], 0);
-            const animRun = getAnim(['run', 'walk', 'move'], 1);
-            const animAttack = getAnim(['punch', 'attack', 'hit'], 2);
+            // walk → idle base
+            // run  → correr
+            // punch o kick → ataque
+            // death → morir
+            const animIdle   = getAnim(['walk'], 0);
+            const animRun    = getAnim(['run'], 1);
+            const animAttack = getAnim(['punch', 'kick'], 2);
+            const animDie    = getAnim(['death', 'die', 'dead'], 3);
 
-            this.actionIdle = this.mixer.clipAction(animIdle);
-            this.actionRun = this.mixer.clipAction(animRun);
-            this.actionAttack = this.mixer.clipAction(animAttack);
+            console.log('Animaciones asignadas:', {
+              idle:   animIdle?.name,
+              run:    animRun?.name,
+              attack: animAttack?.name,
+              die:    animDie?.name,
+            });
 
-            this.actionIdle.play();
-            this.currentAction = this.actionIdle;
+            if (animIdle) {
+              this.actionIdle = this.mixer.clipAction(animIdle);
+            }
+            if (animRun) {
+              this.actionRun = this.mixer.clipAction(animRun);
+            }
+            if (animAttack) {
+              this.actionAttack = this.mixer.clipAction(animAttack);
+            }
+            if (animDie) {
+              this.actionDie = this.mixer.clipAction(animDie);
+              this.actionDie.setLoop(THREE.LoopOnce, 1).clampWhenFinished = true;
+            }
+
+            if (this.actionIdle) {
+              this.currentAction = this.actionIdle;
+              this.actionIdle.play();
+            }
           }
         } else {
           // Fallback to Box
@@ -492,6 +566,23 @@
         this.hpFill = this.labelEl.querySelector('.hp-bar-fill');
       }
 
+      fadeToAction(nextAction, duration = 0.2) {
+        if (!nextAction || this.currentAction === nextAction) return;
+        const prevAction = this.currentAction;
+        this.currentAction = nextAction;
+
+        if (prevAction) {
+          prevAction.fadeOut(duration);
+        }
+
+        nextAction
+          .reset()
+          .setEffectiveTimeScale(1)
+          .setEffectiveWeight(1)
+          .fadeIn(duration)
+          .play();
+      }
+
       takeDamage(amount, attacker) {
         if (this.isDead) return;
         this.hp -= amount;
@@ -520,10 +611,18 @@
 
       die() {
         this.isDead = true;
-        scene.remove(this.mesh);
-        this.labelEl.remove();
-        if (this.mixer) {
-          mixers = mixers.filter(m => m !== this.mixer);
+        // Reproducir animación de muerte si existe
+        if (this.actionDie && this.mixer) {
+          this.fadeToAction(this.actionDie, 0.1);
+          setTimeout(() => {
+            scene.remove(this.mesh);
+            this.labelEl.remove();
+            mixers = mixers.filter(m => m !== this.mixer);
+          }, 1500);
+        } else {
+          scene.remove(this.mesh);
+          this.labelEl.remove();
+          if (this.mixer) mixers = mixers.filter(m => m !== this.mixer);
         }
       }
 
@@ -536,9 +635,9 @@
         else if (hpPercent < 0.5) this.hpFill.style.background = '#f59e0b';
         else this.hpFill.style.background = '#10b981';
 
-        // Project 3D position to 2D screen coordinates
-        const tempV = this.position.clone();
-        tempV.y += 10; // offset above mesh
+        // Project 3D position of the real mesh to 2D screen coordinates
+        const tempV = this.mesh.position.clone();
+        tempV.y += 48; // offset above mesh (for scale 48)
         tempV.project(camera);
         
         const x = (tempV.x *  .5 + .5) * window.innerWidth;
@@ -608,38 +707,51 @@
           const f = fighters[i];
           if (f === this || f.isDead) continue;
           const distSq = this.position.distanceToSquared(f.position);
-          const minSep = 12; // Personal space radius
+          const minSep = 26; // Personal space radius (adjusted for scale 48)
           if (distSq < minSep * minSep && distSq > 0.1) {
             const dist = Math.sqrt(distSq);
             const pushDir = new THREE.Vector3().subVectors(this.position, f.position).normalize();
-            const pushForce = (minSep - dist) * 5; // The closer they are, the harder they push away
+            const pushForce = (minSep - dist) * 2.5; // Smoother push force to prevent jitters
             this.position.addScaledVector(pushDir, pushForce * dt);
           }
+        }
+
+        // Apply physical knockback forces if any
+        if (this.knockback.lengthSq() > 0.01) {
+          this.position.addScaledVector(this.knockback, dt);
+          this.knockback.multiplyScalar(Math.exp(-8 * dt)); // Amortiguar knockback progresivamente
+        } else {
+          this.knockback.set(0, 0, 0);
         }
 
         // Move towards target
         if (this.target) {
           const distToTarget = this.position.distanceTo(this.target.position);
           
-          if (distToTarget > this.attackRange) {
-            // Move
-            const dir = new THREE.Vector3().subVectors(this.target.position, this.position).normalize();
-            this.position.addScaledVector(dir, this.speed * dt);
+          // Rango de escape mayor una vez que se está atacando (Histéresis para evitar bucle/temblor)
+          const activeRange = this.isAttackingState ? (this.attackRange + 12) : this.attackRange;
+          
+          if (distToTarget > activeRange) {
+            this.isAttackingState = false;
             
             // Rotate to face target
-            // Need to handle Y rotation for proper facing
             const targetPos = this.target.position.clone();
             targetPos.y = this.mesh.position.y;
             this.mesh.lookAt(targetPos);
 
+            // Move container manually only if fallback cuboid (no mixer/animation root motion)
+            if (!this.mixer) {
+              const dir = new THREE.Vector3().subVectors(this.target.position, this.position).normalize();
+              this.position.addScaledVector(dir, this.speed * dt);
+            }
+
             // Play Run Animation
-            if (this.actionRun && this.currentAction !== this.actionRun) {
-              if (this.currentAction) this.currentAction.crossFadeTo(this.actionRun, 0.2, true);
-              this.actionRun.play();
-              this.currentAction = this.actionRun;
+            if (this.actionRun) {
+              this.fadeToAction(this.actionRun, 0.2);
             }
           } else {
-            // Attack
+            this.isAttackingState = true;
+            
             // Rotate to face target
             const targetPos = this.target.position.clone();
             targetPos.y = this.mesh.position.y;
@@ -657,18 +769,34 @@
             }
 
             // Play Attack Animation
-            if (this.actionAttack && this.currentAction !== this.actionAttack) {
-              if (this.currentAction) this.currentAction.crossFadeTo(this.actionAttack, 0.1, true);
-              this.actionAttack.play();
-              this.currentAction = this.actionAttack;
+            if (this.actionAttack) {
+              this.fadeToAction(this.actionAttack, 0.15);
             }
           }
         } else {
-          // No target, play Idle
-          if (this.actionIdle && this.currentAction !== this.actionIdle) {
-            if (this.currentAction) this.currentAction.crossFadeTo(this.actionIdle, 0.3, true);
-            this.actionIdle.play();
-            this.currentAction = this.actionIdle;
+          // No target, moverse libremente (patrullar)
+          if (!this.patrolTarget || this.position.distanceTo(this.patrolTarget) < 30) {
+            // Elegir nueva posición aleatoria de patrulla dentro del límite de la arena
+            this.patrolTarget = new THREE.Vector3(
+              (Math.random() - 0.5) * (arenaSize * 1.5),
+              this.position.y,
+              (Math.random() - 0.5) * (arenaSize * 1.5)
+            );
+          }
+          
+          // Rotar para mirar al punto de patrulla
+          const lookPos = this.patrolTarget.clone();
+          lookPos.y = this.mesh.position.y;
+          this.mesh.lookAt(lookPos);
+
+          // Move container manually only if fallback cuboid (no mixer/animation root motion)
+          if (!this.mixer) {
+            const dir = new THREE.Vector3().subVectors(this.patrolTarget, this.position).normalize();
+            this.position.addScaledVector(dir, (this.speed * 0.5) * dt);
+          }
+          
+          if (this.actionIdle) {
+            this.fadeToAction(this.actionIdle, 0.3);
           }
         }
 
@@ -678,8 +806,35 @@
         if (this.position.z > arenaSize - 5) this.position.z = arenaSize - 5;
         if (this.position.z < -arenaSize + 5) this.position.z = -arenaSize + 5;
 
-        // Apply base position
-        this.mesh.position.lerp(this.position, 15 * dt);
+        // Apply Root Motion Translation if active and hips are available
+        if (this.mesh && this.mixer) {
+          const hips = this.mesh.getObjectByName('mixamorigHips');
+          if (hips) {
+            // Inicializar posición previa si está en cero
+            if (this.prevHipsPos.lengthSq() === 0) {
+              this.prevHipsPos.copy(hips.position);
+            }
+            
+            // Calcular el desplazamiento relativo local de la animación en este frame
+            const deltaX = hips.position.x - this.prevHipsPos.x;
+            const deltaZ = hips.position.z - this.prevHipsPos.z;
+            
+            if (Math.abs(deltaX) > 0.0001 || Math.abs(deltaZ) > 0.0001) {
+              // Convertir a coordenadas globales según la orientación del personaje
+              const deltaWorld = new THREE.Vector3(deltaX, 0, deltaZ);
+              deltaWorld.applyQuaternion(this.mesh.quaternion);
+              
+              // Trasladar el contenedor físico
+              this.position.add(deltaWorld);
+            }
+            
+            // Guardar posición para el siguiente frame
+            this.prevHipsPos.copy(hips.position);
+          }
+        }
+
+        // Apply base position directly to avoid delay/slipping
+        this.mesh.position.copy(this.position);
         
         // Bobbing animation while moving (only if no real animations)
         if (!this.mixer && this.target && this.position.distanceTo(this.target.position) > this.attackRange) {
@@ -701,8 +856,27 @@
           joinGame(event.uniqueId, event.nickname, event.profilePictureUrl);
         }
       } else if (event.type === "gift") {
-        // Apply benefits later
         handleGiftEvent(event);
+      }
+    });
+
+    socket.on("royale-control-event", (data) => {
+      if (data.action === "togglePlay") {
+        window.RoyaleAPI.togglePlay(data.mins);
+      } else if (data.action === "endMatch") {
+        window.RoyaleAPI.endMatch();
+      } else if (data.action === "addTime") {
+        window.RoyaleAPI.addTime(data.ms);
+      } else if (data.action === "simulateJoin") {
+        window.RoyaleAPI.simulateJoin(data.user);
+      } else if (data.action === "simulateGift") {
+        window.RoyaleAPI.simulateGift(data.user, data.coins, data.combo);
+      } else if (data.action === "queryState") {
+        socket.emit("royale-control-cmd", {
+          action: "stateResponse",
+          isGameActive,
+          gameState: gameState === STATE_PLAYING ? 'PLAYING' : 'WAITING'
+        });
       }
     });
 
@@ -776,7 +950,10 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      const dt = clock.getDelta();
+      let dt = clock.getDelta();
+      // Cap delta time to prevent physics/position glitches when JS freezes (like during GLTF model cloning)
+      if (dt > 0.05) dt = 0.05;
+      
       const time = clock.getElapsedTime();
 
       if (isGameActive && gameState === STATE_PLAYING) {
@@ -880,16 +1057,29 @@
       }
     };
 
-    function showControls() {
-      window.open('royale-controls.html', 'RoyaleControls', 'width=350,height=600,resizable=yes');
-    }
-
-    document.addEventListener("dblclick", showControls);
-    document.addEventListener("keydown", (e) => {
-      if (e.key.toLowerCase() === 'c') {
-        showControls();
+    // Canal de comunicación alternativo por si window.opener falla
+    const royaleChannel = new BroadcastChannel('royale-channel');
+    royaleChannel.onmessage = (e) => {
+      const data = e.data;
+      if (data.type === 'queryState') {
+        royaleChannel.postMessage({
+          type: 'state',
+          isGameActive,
+          gameState: gameState === STATE_PLAYING ? 'PLAYING' : 'WAITING'
+        });
+      } else if (data.type === 'togglePlay') {
+        window.RoyaleAPI.togglePlay(data.mins);
+      } else if (data.type === 'endMatch') {
+        window.RoyaleAPI.endMatch();
+      } else if (data.type === 'addTime') {
+        window.RoyaleAPI.addTime(data.ms);
+      } else if (data.type === 'simulateJoin') {
+        window.RoyaleAPI.simulateJoin(data.user);
+      } else if (data.type === 'simulateGift') {
+        window.RoyaleAPI.simulateGift(data.user, data.coins, data.combo);
       }
-    });
+    };
+
   </script>
 </body>
 </html>

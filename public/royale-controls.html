@@ -164,20 +164,79 @@
     </div>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     let royaleAPI = null;
     let isPlaying = false;
 
-    function connectToGame() {
-      if (window.opener && window.opener.RoyaleAPI) {
-        royaleAPI = window.opener.RoyaleAPI;
-        document.getElementById('status-msg').textContent = "✅ Conectado a Royale 3D";
+    // Conectividad por Socket.io (prioritaria, a prueba de fallos y bloqueos de Electron)
+    const socket = io();
+    let useSocket = false;
+
+    socket.on("royale-control-event", (data) => {
+      if (data.action === "stateResponse") {
+        useSocket = true;
+        document.getElementById('status-msg').textContent = "✅ Conectado a Royale 3D (Socket)";
         document.getElementById('status-msg').style.color = "var(--success)";
-        syncState();
-      } else {
-        document.getElementById('status-msg').textContent = "❌ No se encontró el Juego. Abre esta ventana desde royale3d.html";
-        document.getElementById('status-msg').style.color = "var(--danger)";
+        
+        isPlaying = data.isGameActive;
+        const startBtn = document.getElementById("start-btn");
+        if (isPlaying) {
+          startBtn.className = "btn btn-danger";
+          startBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+          document.getElementById("end-match-btn").style.display = (data.gameState === 'PLAYING') ? 'flex' : 'none';
+        } else {
+          startBtn.className = "btn btn-success";
+          startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+          document.getElementById("end-match-btn").style.display = 'none';
+        }
       }
+    });
+
+    // Conectividad mediante BroadcastChannel para evitar bloqueos de window.opener en Electron
+    const royaleChannel = new BroadcastChannel('royale-channel');
+    let useChannel = false;
+
+    royaleChannel.onmessage = (e) => {
+      if (e.data.type === 'state') {
+        useChannel = true;
+        document.getElementById('status-msg').textContent = "✅ Conectado a Royale 3D (Channel)";
+        document.getElementById('status-msg').style.color = "var(--success)";
+        
+        isPlaying = e.data.isGameActive;
+        const startBtn = document.getElementById("start-btn");
+        if (isPlaying) {
+          startBtn.className = "btn btn-danger";
+          startBtn.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+          document.getElementById("end-match-btn").style.display = (e.data.gameState === 'PLAYING') ? 'flex' : 'none';
+        } else {
+          startBtn.className = "btn btn-success";
+          startBtn.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+          document.getElementById("end-match-btn").style.display = 'none';
+        }
+      }
+    };
+
+    function connectToGame() {
+      // 1. Consultar a través del socket (método primario a prueba de fallos)
+      socket.emit("royale-control-cmd", { action: "queryState" });
+
+      // 2. Preguntar por el estado a través del canal
+      royaleChannel.postMessage({ type: 'queryState' });
+
+      // 3. Fallback de window.opener clásico por si no responde el canal
+      setTimeout(() => {
+        if (useSocket || useChannel) return;
+        if (window.opener && window.opener.RoyaleAPI) {
+          royaleAPI = window.opener.RoyaleAPI;
+          document.getElementById('status-msg').textContent = "✅ Conectado a Royale 3D";
+          document.getElementById('status-msg').style.color = "var(--success)";
+          syncState();
+        } else {
+          document.getElementById('status-msg').textContent = "❌ No se encontró el Juego. Abre esta ventana desde royale3d.html";
+          document.getElementById('status-msg').style.color = "var(--danger)";
+        }
+      }, 150);
     }
 
     function syncState() {
@@ -202,7 +261,13 @@
 
     // Event Listeners
     document.getElementById("start-btn").addEventListener("click", () => {
-      if (royaleAPI) {
+      if (useSocket) {
+        const mins = parseFloat(document.getElementById("time-limit").value) || 5;
+        socket.emit("royale-control-cmd", { action: "togglePlay", mins });
+      } else if (useChannel) {
+        const mins = parseFloat(document.getElementById("time-limit").value) || 5;
+        royaleChannel.postMessage({ type: 'togglePlay', mins });
+      } else if (royaleAPI) {
         const mins = parseFloat(document.getElementById("time-limit").value) || 5;
         royaleAPI.togglePlay(mins);
         setTimeout(syncState, 200);
@@ -210,32 +275,48 @@
     });
 
     document.getElementById("end-match-btn").addEventListener("click", () => {
-      if (royaleAPI) {
+      if (useSocket) {
+        socket.emit("royale-control-cmd", { action: "endMatch" });
+      } else if (useChannel) {
+        royaleChannel.postMessage({ type: 'endMatch' });
+      } else if (royaleAPI) {
         royaleAPI.endMatch();
         setTimeout(syncState, 200);
       }
     });
 
     document.getElementById("add-time-30").addEventListener("click", () => {
-      if (royaleAPI) royaleAPI.addTime(30000);
+      if (useSocket) socket.emit("royale-control-cmd", { action: "addTime", ms: 30000 });
+      else if (useChannel) royaleChannel.postMessage({ type: 'addTime', ms: 30000 });
+      else if (royaleAPI) royaleAPI.addTime(30000);
     });
     document.getElementById("add-time-60").addEventListener("click", () => {
-      if (royaleAPI) royaleAPI.addTime(60000);
+      if (useSocket) socket.emit("royale-control-cmd", { action: "addTime", ms: 60000 });
+      else if (useChannel) royaleChannel.postMessage({ type: 'addTime', ms: 60000 });
+      else if (royaleAPI) royaleAPI.addTime(60000);
     });
 
     // Simulator
     document.getElementById("sim-join").addEventListener("click", () => {
-      if (royaleAPI) {
-        const user = document.getElementById("sim-user").value || ("Guerrero_" + Math.floor(Math.random()*1000));
+      const user = document.getElementById("sim-user").value || ("Guerrero_" + Math.floor(Math.random()*1000));
+      if (useSocket) {
+        socket.emit("royale-control-cmd", { action: "simulateJoin", user });
+      } else if (useChannel) {
+        royaleChannel.postMessage({ type: 'simulateJoin', user });
+      } else if (royaleAPI) {
         royaleAPI.simulateJoin(user);
       }
     });
 
     document.getElementById("sim-gift").addEventListener("click", () => {
-      if (royaleAPI) {
-        const user = document.getElementById("sim-user").value || "TestUser";
-        const coins = parseInt(document.getElementById("sim-coins").value) || 5;
-        const combo = parseInt(document.getElementById("sim-combo").value) || 1;
+      const user = document.getElementById("sim-user").value || "TestUser";
+      const coins = parseInt(document.getElementById("sim-coins").value) || 5;
+      const combo = parseInt(document.getElementById("sim-combo").value) || 1;
+      if (useSocket) {
+        socket.emit("royale-control-cmd", { action: "simulateGift", user, coins, combo });
+      } else if (useChannel) {
+        royaleChannel.postMessage({ type: 'simulateGift', user, coins, combo });
+      } else if (royaleAPI) {
         royaleAPI.simulateGift(user, coins, combo);
       }
     });

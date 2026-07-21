@@ -7,7 +7,7 @@
   "main": "electron/main.js",
   "scripts": {
     "start": "tsx server.ts",
-    "electron": "electron --disable-gpu --no-sandbox --disable-software-rasterizer .",
+    "electron": "electron .",
     "compile": "tsc",
     "pack": "npm run compile && electron-packager . \"TikTok Games Launcher\" --platform=win32 --arch=x64 --out=dist-electron --overwrite --ignore=\"(central-server|dist-electron|tsconfig.json|server.ts)\"",
     "dist": "npm run compile && electron-packager . \"TikTok Games Launcher\" --platform=win32 --arch=x64 --out=dist-electron --overwrite --ignore=\"(central-server|dist-electron|tsconfig.json|server.ts|config\\.local\\.json|scratch|temp_update|\\.git)\"",

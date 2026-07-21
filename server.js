@@ -623,6 +623,10 @@ io.on("connection", (socket) => {
     socket.on("update-leaderboard", (data) => {
         io.emit("live-leaderboard", data);
     });
+    // Retransmitir comandos de control de Royale 3D
+    socket.on("royale-control-cmd", (data) => {
+        io.emit("royale-control-event", data);
+    });
     socket.on("disconnect", () => {
         console.log(`🔌 Cliente desconectado del socket: ${socket.id}`);
     });
