@@ -31,6 +31,11 @@ if (!API_KEY) {
     CENTRAL_API_URL = cfg.centralApiUrl || CENTRAL_API_URL;
     API_KEY = cfg.apiKey || "";
 }
+// Normalizar CENTRAL_API_URL para no duplicar /api si está presente en config.json
+CENTRAL_API_URL = CENTRAL_API_URL.trim().replace(/\/$/, "");
+if (CENTRAL_API_URL.endsWith("/api")) {
+    CENTRAL_API_URL = CENTRAL_API_URL.slice(0, -4);
+}
 let queue = [];
 let activeConnection = null;
 let currentUsername = null;
@@ -222,6 +227,10 @@ const server = http.createServer(app);
 const io = new Server(server);
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+// Obtener la URL del servidor central configurada
+app.get("/api/local/config", (_req, res) => {
+    res.json({ centralApiUrl: CENTRAL_API_URL });
+});
 // Sincronizar API Key cuando el usuario inicia sesión
 app.post("/api/local/login-sync", (req, res) => {
     const { apiKey, displayName, email } = req.body;
@@ -622,10 +631,6 @@ io.on("connection", (socket) => {
     // Forward Live Leaderboard from Battle Window
     socket.on("update-leaderboard", (data) => {
         io.emit("live-leaderboard", data);
-    });
-    // Retransmitir comandos de control de Royale 3D
-    socket.on("royale-control-cmd", (data) => {
-        io.emit("royale-control-event", data);
     });
     socket.on("disconnect", () => {
         console.log(`🔌 Cliente desconectado del socket: ${socket.id}`);

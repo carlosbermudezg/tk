@@ -29,6 +29,12 @@ if (!API_KEY) {
   API_KEY = cfg.apiKey || "";
 }
 
+// Normalizar CENTRAL_API_URL para no duplicar /api si está presente en config.json
+CENTRAL_API_URL = CENTRAL_API_URL.trim().replace(/\/$/, "");
+if (CENTRAL_API_URL.endsWith("/api")) {
+  CENTRAL_API_URL = CENTRAL_API_URL.slice(0, -4);
+}
+
 interface QueueUser {
   username: string;
   name: string;
@@ -217,6 +223,11 @@ const io = new Server(server);
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+// Obtener la URL del servidor central configurada
+app.get("/api/local/config", (_req, res) => {
+  res.json({ centralApiUrl: CENTRAL_API_URL });
+});
 
 // Sincronizar API Key cuando el usuario inicia sesión
 app.post("/api/local/login-sync", (req, res) => {
