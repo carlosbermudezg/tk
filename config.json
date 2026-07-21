@@ -1,4 +1,4 @@
 {
-  "centralApiUrl": "http://localhost:4000",
-  "githubRepo": "carlosbermudezg/tk"
+  "centralApiUrl": "http://38.224.81.46:3005/tk/api",
+  "githubRepo": "carlosbermudezg/tk-central-server"
 }
